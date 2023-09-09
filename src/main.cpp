@@ -1,4 +1,9 @@
-/// --------------- main.cpp -------------------- //
+/*
+    File: main.cpp
+    The main file contains the algorithm for the actual power regualtion
+
+    written by Elias Geiger
+*/
 
 // includes
 #include "UdpReceiver.cpp"
@@ -12,7 +17,7 @@ PsuController* psu = nullptr;
 Queue<short> cmdQueue;
 UdpReceiver* rc = nullptr;
 
-// prototypes
+// function prototypes
 void terminateSignalHandler(int);
 void powerRegulation();
 float currentBasedOnPower(float, float);
@@ -20,7 +25,7 @@ float currentBasedOnPower(float, float);
 // ----- Main Function ----- //
 int main(int argc, char **argv) 
 {
-    std::cout << "Application launch -----------" << std::endl;
+    std::cout << "Huawei-PSU-Regulator launched ----------------------------" << std::endl;
 
     // create signal handler for clean Ctrl+C close up
     struct sigaction sigIntHandler;
