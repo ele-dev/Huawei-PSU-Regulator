@@ -7,6 +7,10 @@
 
 #pragma once
 
+// for debugging purposes
+// #define _VERBOSE_OUTPUT
+
+// configuration parameters
 #define TARGET_GRID_POWER 3
 #define CAN_INTERFACE_NAME "can0"
 #define MAX_CHARGE_POWER 700

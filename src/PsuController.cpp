@@ -27,11 +27,8 @@ using std::chrono::steady_clock;
 using std::chrono::milliseconds;
 using std::chrono::duration_cast;
 
-// #define _VERBOSE_OUTPUT
-
 // config variables ---------------------
 #define MAX_CURRENT_MULTIPLIER		20
-
 #define R48xx_DATA_INPUT_POWER		0x70
 #define R48xx_DATA_INPUT_FREQ		0x71
 #define R48xx_DATA_INPUT_CURRENT	0x72
