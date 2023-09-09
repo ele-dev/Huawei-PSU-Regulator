@@ -13,8 +13,8 @@ This software aims to store
 
 ## Quick setup
 1. clone the repository on the linux system that is connected to the power supply via CAN
-2. go into the src folder and run make clean and make
-3. execute the command line application in the bin folder with ./regulatorApp (use screen -dmS regualtor ./regulatorApp to run detached screen)
+2. go into the src folder and run ``` make clean and make ``` 
+4. execute the command line application in the bin folder with ``` ./regulatorApp ``` (use ``` screen -dmS regualtor ./regulatorApp ``` to run detached screen)
 
 ## Acknowledgements
 The code for the CAN commuication was based on work from craigpeacock
