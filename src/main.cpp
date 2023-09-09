@@ -5,7 +5,7 @@
     written by Elias Geiger
 */
 
-// includes
+// Includes
 #include "UdpReceiver.cpp"
 #include "PsuController.cpp"
 #include "config.h"
