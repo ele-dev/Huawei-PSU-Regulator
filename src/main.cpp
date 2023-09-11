@@ -85,24 +85,25 @@ void terminateSignalHandler(int code) {
 void powerRegulation() {
     short latestPowerState = 0;
     short error = 0;
+
+    // main loop of the power regulator
     while(true) 
     {
-        // check for now command on the queue
-        if(!cmdQueue.tryPop(latestPowerState) && abs(error < 15)) {
-            sleep_for(milliseconds(100));
+        // check for new command on the queue
+        if(!cmdQueue.tryPop(latestPowerState)) {
+            sleep_for(milliseconds(100));       // avoid buisy waiting with small idle
             continue;
         }
 
         // calculate error (absolute difference from target value)
+        // don't try to compensate for very small errors
         error = TARGET_GRID_POWER - latestPowerState;
-        if(abs(error) < 8) {
+        if(abs(error) < REGULATOR_ERR_THRESHOLD) {
             continue;
         }
         short powerCmd = static_cast<short>(psu->getCurrentIntputPower()) + error;
-        // std::cout << "[Regulator]: Error of " << error << "W" << std::endl;
-        // std::cout << "[Regulator]: suggested reaction with " << powerCmd << "W command" << std::endl;
 
-        // set bounds for allowe power commands (min and max)
+        // set bounds for allowed power commands (min and max)
         if(powerCmd > MAX_CHARGE_POWER) {
             powerCmd = MAX_CHARGE_POWER;
         }
@@ -116,7 +117,7 @@ void powerRegulation() {
 
         // send max current command to the PSU and idle a short time 
         psu->setMaxCurrent(maxCurrentCmd, false);
-        sleep_for(milliseconds(1500));
+        sleep_for(milliseconds(REGULATOR_IDLE_TIME));
     }
 }
 
@@ -128,7 +129,7 @@ float round(float var)
 }
 
 float currentBasedOnPower(float power, float batteryVoltage) {
-    // Determine expected AC/DC conversion efficiency based on power
+    // Determine expected AC/DC conversion efficiency based on power command
     float eff = 0.0f;
     if(power >= 1 && power < 461) {
         eff = 0.88f;

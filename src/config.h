@@ -11,7 +11,23 @@
 // #define _VERBOSE_OUTPUT
 
 // configuration parameters
-#define TARGET_GRID_POWER 3
 #define CAN_INTERFACE_NAME "can0"
+
+// desired value for grid import power for charging 
+// recommendation: 0 or slightly above
+#define TARGET_GRID_POWER 3
+
+// regulator only tries to compensate for errors bigger than this constant
+// recommendation: between 5 and 15
+#define REGULATOR_ERR_THRESHOLD 7
+
+// enforced wait time until which elapses before next power command is processed in milliseconds
+#define REGULATOR_IDLE_TIME 1200
+
+// bounds for min and max DC ouput power of the charger PSU
 #define MAX_CHARGE_POWER 700
 #define MIN_CHARGE_POWER 45
+
+// absorbtion voltage to use for charging
+// recommendation: go lower to spare battery lifetime if you don't need the capacity
+#define CHARGER_ABSORPTION_VOLTAGE 52.5f

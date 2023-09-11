@@ -23,6 +23,8 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
+#include "config.h"
+
 using std::chrono::steady_clock;
 using std::chrono::milliseconds;
 using std::chrono::duration_cast;
@@ -111,14 +113,14 @@ public:
 		}
 
 		// spawn worker thread
-		m_workerTh = std::thread([](PsuController* ptr) {
+		m_workerTh = std::thread([] (PsuController* ptr) {
 			auto lastTime = steady_clock::now(), lastTime2 = steady_clock::now();
 			auto currentTime = steady_clock::now(), currentTime2 = steady_clock::now();
 			ptr->m_threadRunning = true;
 			std::cout << "[PSU-thread] worker thread running ..." << std::endl;
 
 			// send initial volatage and current commands, don't output power by default
-			ptr->setMaxVoltage(52.5f, false);		// online mode
+			ptr->setMaxVoltage(CHARGER_ABSORPTION_VOLTAGE, false);		// online mode
 			// ptr->setMaxCurrent(0.0f, false);		// " "
 
 			// send first request for status report
@@ -162,20 +164,18 @@ public:
 						break;
 				}
 
-				// every 2 seconds repeat last command and request status update
+				// every second request status update
 				currentTime = steady_clock::now();
-				milliseconds timeElapsed = duration_cast<milliseconds>(currentTime-lastTime);
-				if(timeElapsed.count() > 2000) {
-					// std::cout << "Periodic command send" << std::endl;
-					// ptr->setMaxCurrent(ptr->m_lastCurrentCmd, false);
+				milliseconds timeElapsed = duration_cast<milliseconds>(currentTime - lastTime);
+				if(timeElapsed.count() > 1000) {
 					ptr->requestStatusData();
 					lastTime = steady_clock::now();
 				}
 
-				// every 4 sec repeat last current command
+				// every 5 sec repeat last current command to ensure PSU stays in online mode
 				currentTime2 = steady_clock::now();
-				timeElapsed = duration_cast<milliseconds>(currentTime2-lastTime2);
-				if(timeElapsed.count() > 4000) {
+				timeElapsed = duration_cast<milliseconds>(currentTime2 - lastTime2);
+				if(timeElapsed.count() > 5000) {
 					ptr->setMaxCurrent(ptr->m_lastCurrentCmd, false);
 					lastTime2 = steady_clock::now();
 				}
