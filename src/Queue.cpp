@@ -24,20 +24,23 @@ public:
         m_queue.push(elem);
     }
 
-    // Attempts to fetch and pop next element from the queue if not empty
+    // Attempts to fetch and pop elements from the queue and stores the latest element. returns false if queue was empty from the start
     // return by reference, blocks as longs as locked by someone else, doesn't wait for queue to be filled when empty
     bool tryPop(T& elem) 
     {
         // apply lock guard for thread safe access to the queue
         const std::lock_guard<std::mutex> lock(m_mutex);
         
-        // check if queue empty
+        // check and abort if queue is already/still empty
         if(m_queue.empty()) {
             return false;
         }
-        // get element pop it
-        elem = m_queue.front();
-        m_queue.pop();
+
+        // pop elements until queue is empty, return the last via reference
+        do {
+            elem = m_queue.front();
+            m_queue.pop();
+        } while(!m_queue.empty());
 
         return true;
     }
