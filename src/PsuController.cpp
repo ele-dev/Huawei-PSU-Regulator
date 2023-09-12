@@ -254,11 +254,6 @@ public:
 		uint16_t value = current * MAX_CURRENT_MULTIPLIER;
 		uint8_t command;
 
-		// reset command acknowledgement flag if target current has changed
-		if(current != m_lastCurrentCmd) {
-			m_cmdAckFlag = false;
-		}
-
 		if (nonvolatile) command = 0x04;	// Off-line mode
 		else		 command = 0x03;	// On-line mode
 
@@ -277,6 +272,12 @@ public:
 		if(!sendCanFrame(sendFrame)) {
 			std::cerr << "Failed to send current command!" << std::endl;
 			return false;
+		}
+
+		// reset command acknowledgement flag if target current has changed
+		if(current != m_lastCurrentCmd) {
+			m_cmdAckFlag = false;
+			std::cout << "[PSU] sent new current command: " << current << "A" << std::endl;
 		}
 
 		// save as last current command
