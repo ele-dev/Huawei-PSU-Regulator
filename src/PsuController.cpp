@@ -75,12 +75,14 @@ class PsuController
 	std::thread m_workerTh;
 	std::atomic<bool> m_threadRunning;
 	float m_lastCurrentCmd;
+	bool m_cmdAckFlag;
 
 public:
 	PsuController() {
 		std::cout << "[PSU] Controller created" << std::endl;
 		m_threadRunning = false;
 		m_lastCurrentCmd = 0.0f;
+		m_cmdAckFlag = false;
 	}
 
 	// Destructor
@@ -252,6 +254,11 @@ public:
 		uint16_t value = current * MAX_CURRENT_MULTIPLIER;
 		uint8_t command;
 
+		// reset command acknowledgement flag if target current has changed
+		if(current != m_lastCurrentCmd) {
+			m_cmdAckFlag = false;
+		}
+
 		if (nonvolatile) command = 0x04;	// Off-line mode
 		else		 command = 0x03;	// On-line mode
 
@@ -400,26 +407,47 @@ private:
 		// decode error flag and 
 		bool error = frame[0] & 0x20;
 		uint32_t value = __builtin_bswap32(*(uint32_t*)&frame[4]);
+		float currentAck = 0.0f;
 
 		switch (frame[1]) {
 			case 0x00:
-				printf("%s setting on-line voltage to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
+			{
+				printf("%s setting online voltage to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
 				break;
+			}
+				
 			case 0x01:
-				printf("%s setting non-volatile (off-line) voltage to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
+			{
+				printf("%s setting non-volatile (offline) voltage to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
 				break;
+			}
+				
 			case 0x02:
+			{
 				printf("%s setting overvoltage protection to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
 				break;
+			}
+				
 			case 0x03:
-				printf("%s setting on-line current to %.02fA\n", error ? "Error" : "Success", (float)value / MAX_CURRENT_MULTIPLIER);
+			{
+				currentAck = (float)value / MAX_CURRENT_MULTIPLIER;
+				if(m_cmdAckFlag == false && currentAck == m_lastCurrentCmd) {
+					printf("%s setting online current to %.02fA\n", error ? "Error" : "Success", currentAck);
+					m_cmdAckFlag = true;
+				}
 				break;
+			}
+				
 			case 0x04:
-				printf("%s setting non-volatile (off-line) current to %.02fA\n", error ? "Error" : "Success", (float)value / MAX_CURRENT_MULTIPLIER);
+			{
+				printf("%s setting non-volatile (offline) current to %.02fA\n", error ? "Error" : "Success", (float)value / MAX_CURRENT_MULTIPLIER);
 				break;
+			}
+				
 			default:
+			{
 				printf("%s setting unknown parameter (0x%02X)\n", error ? "Error" : "Success", frame[1]);
-				break;
+			}
 		}
 	}
 };
