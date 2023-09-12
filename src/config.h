@@ -12,21 +12,22 @@
 
 // configuration parameters
 #define CAN_INTERFACE_NAME "can0"
+#define UDP_PORT 2000
 
 // desired value for grid import power for charging 
 // recommendation: 0 or slightly above
-#define TARGET_GRID_POWER 3
+#define TARGET_GRID_POWER 6
 
 // regulator only tries to compensate for errors bigger than this constant
 // recommendation: between 5 and 15
-#define REGULATOR_ERR_THRESHOLD 7
+#define REGULATOR_ERR_THRESHOLD 6
 
 // enforced wait time until which elapses before next power command is processed in milliseconds
 #define REGULATOR_IDLE_TIME 1200
 
 // bounds for min and max DC ouput power of the charger PSU
 #define MAX_CHARGE_POWER 700
-#define MIN_CHARGE_POWER 45
+#define MIN_CHARGE_POWER 40
 
 // absorbtion voltage to use for charging
 // recommendation: go lower to spare battery lifetime if you don't need the capacity

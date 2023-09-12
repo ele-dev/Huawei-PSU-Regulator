@@ -16,8 +16,8 @@
 #include <iostream>
 
 #include "Queue.cpp"
+#include "config.h"
 
-#define UDP_PORT 2000
 #define MSGLEN 1024
 
 extern Queue<short> cmdQueue;
