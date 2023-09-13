@@ -40,7 +40,7 @@ public:
         std::cout << "[UDP] receiver destructed" << std::endl;
     }
 
-    bool setup() {
+    bool setup(short udpPort) {
         // only setup once
         if(m_threadRunning) {
             return false;
@@ -57,7 +57,7 @@ public:
         memset(&m_serverAddr, 0, sizeof(m_serverAddr));
         m_serverAddr.sin_family = AF_INET;
         m_serverAddr.sin_addr.s_addr = INADDR_ANY;
-        m_serverAddr.sin_port = htons(UDP_PORT);
+        m_serverAddr.sin_port = htons(static_cast<uint16_t>(udpPort));
 
         // bind socket to address and port 
         if(bind(m_socket, (const struct sockaddr*)&m_serverAddr, sizeof(m_serverAddr)) < 0) {

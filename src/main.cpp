@@ -8,6 +8,7 @@
 // Includes
 #include "UdpReceiver.cpp"
 #include "PsuController.cpp"
+#include "ConfigFile.h"
 #include "config.h"
 
 using std::this_thread::sleep_for;
@@ -16,6 +17,7 @@ using std::this_thread::sleep_for;
 PsuController* psu = nullptr;
 Queue<short> cmdQueue;
 UdpReceiver* rc = nullptr;
+ConfigFile cfg("config.txt");
 
 // function prototypes
 void terminateSignalHandler(int);
@@ -34,12 +36,22 @@ int main(int argc, char **argv)
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
 
+    // read config variables from config file
+    bool status = cfg.loadConfig();
+    if(!status) {
+        std::cerr << "[Config] Failed to open config.txt file!" << std::endl;
+        std::cout << " --> using default settings" << std::endl;
+    }
+
+    // print out the config variable overview
+    cfg.printConfig();
+
     // create a psu controller instance and store pointer on it globally
     PsuController pc;
     psu = &pc;
 
     // attempt to start the PSU controller 
-    bool status = pc.setup(CAN_INTERFACE_NAME);
+    status = pc.setup(cfg.getCanInterfaceName());
     if(!status) {
         terminateSignalHandler(EXIT_FAILURE);
     }
@@ -49,7 +61,7 @@ int main(int argc, char **argv)
     rc = &receiver;
 
     // attempt to start udp receiver to listen for power change events
-    status = receiver.setup();
+    status = receiver.setup(cfg.getUdpPort());
     if(!status) {
         terminateSignalHandler(EXIT_FAILURE);
     }
@@ -97,18 +109,18 @@ void powerRegulation() {
 
         // calculate error (absolute difference from target value)
         // don't try to compensate for very small errors
-        error = TARGET_GRID_POWER - latestPowerState;
-        if(abs(error) < REGULATOR_ERR_THRESHOLD) {
+        error = cfg.getTargetGridPower() - latestPowerState;
+        if(abs(error) < cfg.getRegulatorErrorThreshold()) {
             continue;
         }
         short powerCmd = static_cast<short>(psu->getCurrentIntputPower()) + error;
 
         // set bounds for allowed power commands (min and max)
-        if(powerCmd > MAX_CHARGE_POWER) {
-            powerCmd = MAX_CHARGE_POWER;
+        if(powerCmd > cfg.getMaxChargePower()) {
+            powerCmd = cfg.getMaxChargePower();
         }
 
-        if(powerCmd < MIN_CHARGE_POWER) {
+        if(powerCmd < cfg.getMinChargePower()) {
             powerCmd = 0;
         }
 
@@ -117,7 +129,7 @@ void powerRegulation() {
 
         // send max current command to the PSU and idle a short time 
         psu->setMaxCurrent(maxCurrentCmd, false);
-        sleep_for(milliseconds(REGULATOR_IDLE_TIME));
+        sleep_for(milliseconds(cfg.getRegulatorIdleTime()));
     }
 }
 

@@ -1,0 +1,10 @@
+# This is the config file
+
+can-interface: can0
+udp-listener-port: 2000
+absorption-voltage: 52.5
+min-charge-power: 30
+max-charge-power: 700
+target-grid-power: 0
+regulator-error-threshold: 7
+regulator-idle-time: 1200

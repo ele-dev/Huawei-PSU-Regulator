@@ -24,6 +24,7 @@
 #include <linux/can/raw.h>
 
 #include "config.h"
+#include "ConfigFile.h"
 
 using std::chrono::steady_clock;
 using std::chrono::milliseconds;
@@ -61,6 +62,8 @@ struct RectifierParameters
 	float output_temp;
 	float amp_hour;
 };
+
+extern ConfigFile cfg;
 
 class PsuController
 {
@@ -122,7 +125,7 @@ public:
 			std::cout << "[PSU-thread] worker thread running ..." << std::endl;
 
 			// send initial volatage and current commands, don't output power by default
-			ptr->setMaxVoltage(CHARGER_ABSORPTION_VOLTAGE, false);		// online mode
+			ptr->setMaxVoltage(cfg.getChargerAbsorptionVoltage(), false);		// online mode
 			// ptr->setMaxCurrent(0.0f, false);		// " "
 
 			// send first request for status report
