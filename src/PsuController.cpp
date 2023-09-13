@@ -23,7 +23,6 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-#include "config.h"
 #include "ConfigFile.h"
 
 using std::chrono::steady_clock;

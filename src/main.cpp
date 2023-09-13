@@ -9,7 +9,6 @@
 #include "UdpReceiver.cpp"
 #include "PsuController.cpp"
 #include "ConfigFile.h"
-#include "config.h"
 
 using std::this_thread::sleep_for;
 

@@ -16,7 +16,6 @@
 #include <iostream>
 
 #include "Queue.cpp"
-#include "config.h"
 
 #define MSGLEN 1024
 
