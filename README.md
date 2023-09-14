@@ -12,8 +12,8 @@ to charge a battery in a way so that almost no energy is fed back to the grid fo
 
 ## Quick setup
 1. clone the repository on the linux system that is connected to the power supply via CAN
-2. go into the src folder and run ``` make clean ```
-3. customize the settings in src/config.h to your needs and run ``` make ```
+2. go into the src folder and run ``` make clean ``` and ``` make ``` to build the application binary
+3. customize your settings in bin/config.txt file
 4. execute the command line application in the bin folder with ``` ./regulatorApp ``` (use ``` screen -dmS regualtor ./regulatorApp ``` to run detached screen)
    
 ## Acknowledgements

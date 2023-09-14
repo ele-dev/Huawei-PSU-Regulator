@@ -50,6 +50,7 @@ bool ConfigFile::loadConfig() {
     return true;
 }
 
+// method for printing all config variables to the console
 void ConfigFile::printConfig() const {
     std::cout << "\nConfig Variables:" << std::endl;
     std::cout << "UDP Listener Port:          " << m_udpListenerPort << std::endl;
@@ -77,25 +78,29 @@ void ConfigFile::parseLine(std::string line) {
     }
 
     // detect config variable and store it
-    std::string key = pair.at(0), value = pair.at(1);
-    if(key == "can-interface") {
-        m_canInterfaceName = value;
-    } else if(key == "min-charge-power") {
-        m_minChargePower = static_cast<short>(stoi(value));
-    } else if(key == "max-charge-power") {
-        m_maxChargePower = static_cast<short>(stoi(value));
-    } else if(key == "target-grid-power") {
-        m_targetGridPower = static_cast<short>(stoi(value));
-    } else if(key == "regulator-error-threshold") {
-        m_regulatorErrorThreshold = stoi(value);
-    } else if(key == "udp-listener-port") {
-        m_udpListenerPort = static_cast<short>(stoi(value));
-    } else if(key == "regulator-idle-time") {
-        m_regulatorIdleTime = stoi(value);
-    } else if(key == "absorption-voltage") {
-        m_chargerAbsorptionVoltage = stof(value);
-    } else {
-        std::cerr << "[Config] Invalid config variable named " << key << std::endl;
+    try {
+        std::string key = pair.at(0), value = pair.at(1);
+        if(key == "can-interface") {
+            m_canInterfaceName = value;
+        } else if(key == "min-charge-power") {
+            m_minChargePower = static_cast<short>(stoi(value));
+        } else if(key == "max-charge-power") {
+            m_maxChargePower = static_cast<short>(stoi(value));
+        } else if(key == "target-grid-power") {
+            m_targetGridPower = static_cast<short>(stoi(value));
+        } else if(key == "regulator-error-threshold") {
+            m_regulatorErrorThreshold = stoi(value);
+        } else if(key == "udp-listener-port") {
+            m_udpListenerPort = static_cast<short>(stoi(value));
+        } else if(key == "regulator-idle-time") {
+            m_regulatorIdleTime = stoi(value);
+        } else if(key == "absorption-voltage") {
+            m_chargerAbsorptionVoltage = stof(value);
+        } else {
+            std::cerr << "[Config] Invalid config variable named " << key << std::endl;
+        }
+    } catch(...) {
+        std::cerr << "Exception catched while parsing config file!" << std::endl;
     }
 }
 
@@ -112,7 +117,6 @@ std::vector<std::string> ConfigFile::split(const std::string &text, char sep) {
 }
 
 // Getters //
-
 const char* ConfigFile::getCanInterfaceName() const {
     return m_canInterfaceName.c_str();
 }
