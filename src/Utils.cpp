@@ -14,7 +14,7 @@ bool scheduledClose() {
         tm* tm_local = localtime(&currTime);
         
         // check if time for scheduled exit has passed
-        if(tm_local->tm_hour >= cfg.getScheduledExitHour() && tm_local->tm_min > cfg.getScheduledExitMinute()) {
+        if(tm_local->tm_hour >= cfg.getScheduledExitHour() && tm_local->tm_min >= cfg.getScheduledExitMinute()) {
             return true;
         }
     }

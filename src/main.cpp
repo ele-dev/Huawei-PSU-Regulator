@@ -73,26 +73,23 @@ int main(int argc, char **argv)
     std::cout << "[Main] Setup completed" << std::endl;
 
     powerRegulation();
-
-    // wait for a key press to exit application
-    std::cin.get();
+    std::cout << "[Main] --> Scheduled Application Exit now" << std::endl;
 
     // Close up
-    receiver.closeUp();
-    pc.shutdown();
-    cmdQueue.clear();
+    terminateSignalHandler(EXIT_SUCCESS);
 
     return EXIT_SUCCESS;
 }
 
 void terminateSignalHandler(int code) {
     // shutdown sockets, threads and queue
-    if(psu != nullptr) {
-        psu->shutdown();
-    }
     if(rc != nullptr) {
         rc->closeUp();
     }
+    if(psu != nullptr) {
+        psu->shutdown();
+    }
+    cmdQueue.clear();
     
     exit(code);
 }
