@@ -9,7 +9,7 @@
 #include "UdpReceiver.cpp"
 #include "PsuController.cpp"
 #include "ConfigFile.h"
-
+#include "Utils.h"
 using std::this_thread::sleep_for;
 
 // global instances
@@ -22,11 +22,15 @@ ConfigFile cfg("config.txt");
 void terminateSignalHandler(int);
 void powerRegulation();
 float currentBasedOnPower(float, float);
+bool scheduledClose();
+
 
 // ----- Main Function ----- //
 int main(int argc, char **argv) 
 {
-    std::cout << "Huawei-PSU-Regulator launched ----------------------------" << std::endl;
+    time_t currTime = time(NULL);
+    tm* tm_local = localtime(&currTime);
+    std::cout << "[" << tm_local->tm_hour << ":" << tm_local->tm_min << "] Huawei-PSU-Regulator application launched \n" << std::endl;
 
     // create signal handler for clean Ctrl+C close up
     struct sigaction sigIntHandler;
@@ -98,7 +102,7 @@ void powerRegulation() {
     short error = 0;
 
     // main loop of the power regulator
-    while(true) 
+    while(!scheduledClose()) 
     {
         // check for new command on the queue
         if(!cmdQueue.tryPop(latestPowerState)) {

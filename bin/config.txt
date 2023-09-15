@@ -8,3 +8,8 @@ max-charge-power: 700
 target-grid-power: 0
 regulator-error-threshold: 7
 regulator-idle-time: 1200
+
+# advanced features
+scheduled-exit-enabled: false
+scheduled-exit-hour: 18
+scheduled-exit-minute: 30

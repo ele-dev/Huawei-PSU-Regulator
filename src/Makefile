@@ -3,8 +3,8 @@
 
 CXXFLAGS = -std=c++17
 
-app: main.o UdpReceiver.o Queue.o PsuController.o ConfigFile.o
-	g++ -o ../bin/regulatorApp main.o UdpReceiver.o Queue.o PsuController.o ConfigFile.o -pthread
+app: main.o UdpReceiver.o Queue.o PsuController.o Utils.o ConfigFile.o
+	g++ -o ../bin/regulatorApp main.o UdpReceiver.o Queue.o PsuController.o Utils.o ConfigFile.o -pthread
 
 main.o:
 	g++ -c main.cpp
@@ -17,6 +17,9 @@ Queue.o:
 
 PsuController.o:
 	g++ -c PsuController.cpp
+
+Utils.o: 
+	g++ -c Utils.cpp
 
 ConfigFile.o:
 	g++ -c ConfigFile.cpp

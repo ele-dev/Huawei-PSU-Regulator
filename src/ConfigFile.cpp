@@ -18,6 +18,9 @@ ConfigFile::ConfigFile(std::string filename) {
     m_regulatorErrorThreshold = REGULATOR_ERR_THRESHOLD;
     m_regulatorIdleTime = REGULATOR_IDLE_TIME;
     m_chargerAbsorptionVoltage = CHARGER_ABSORPTION_VOLTAGE;
+    m_scheduledExitEnabled = SCHEDULED_EXIT_ENABLED;
+    m_scheduledExitHour = SCHEDULED_EXIT_HOUR;
+    m_scheduledExitMinute = SCHEDULED_EXIT_MINUTE;
 }
 
 ConfigFile::~ConfigFile() {}
@@ -61,6 +64,8 @@ void ConfigFile::printConfig() const {
     std::cout << "Regulator error threshold:  " << m_regulatorErrorThreshold << " W" << std::endl;
     std::cout << "Regulator idle time:        " << m_regulatorIdleTime << " msec" << std::endl;
     std::cout << "Charger absorption voltage: " << m_chargerAbsorptionVoltage << " V" << std::endl;
+    std::cout << "Scheduled exit enabled:     " << (m_scheduledExitEnabled ? "true" : "false") << std::endl;
+    std::cout << "Scheduled exit time:        " << m_scheduledExitHour << ":" << m_scheduledExitMinute << std::endl;
     std::cout << std::endl;
 }
 
@@ -96,6 +101,28 @@ void ConfigFile::parseLine(std::string line) {
             m_regulatorIdleTime = stoi(value);
         } else if(key == "absorption-voltage") {
             m_chargerAbsorptionVoltage = stof(value);
+        } else if(key == "scheduled-exit-enabled") {
+            m_scheduledExitEnabled = value == "true" ? true : false;
+        } else if(key == "scheduled-exit-hour") {
+            m_scheduledExitHour = stoi(value);
+            if(m_scheduledExitHour < 0) {
+                std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                m_scheduledExitHour = 0;
+            }
+            if(m_scheduledExitHour > 23) {
+                std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                m_scheduledExitHour = 23;
+            }
+        } else if(key == "scheduled-exit-minute") {
+            m_scheduledExitMinute = stoi(value);
+            if(m_scheduledExitMinute < 0) {
+                std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                m_scheduledExitMinute = 0;
+            }
+            if(m_scheduledExitMinute > 59) {
+                std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                m_scheduledExitMinute = 59;
+            }
         } else {
             std::cerr << "[Config] Invalid config variable named " << key << std::endl;
         }
@@ -147,4 +174,16 @@ int ConfigFile::getRegulatorIdleTime() const {
 
 float ConfigFile::getChargerAbsorptionVoltage() const {
     return m_chargerAbsorptionVoltage;
+}
+
+bool ConfigFile::isScheduledExitEnabled() const {
+    return m_scheduledExitEnabled;
+}
+
+int ConfigFile::getScheduledExitHour() const {
+    return m_scheduledExitHour;
+}
+
+int ConfigFile::getScheduledExitMinute() const {
+    return m_scheduledExitMinute;
 }

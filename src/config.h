@@ -1,6 +1,6 @@
 /*
     File: config.h
-    Here are the essential configuration variables define
+    Here are the default values for all essential configuration variables defined
 
     written by Elias Geiger
 */
@@ -13,6 +13,7 @@
 /*
     These are the default fallback values for all config variables.
     They are only used in case the config file doesn't contain valid entries
+    don't change anything here! use the config.txt file instead!
 */ 
 
 // configuration parameters
@@ -37,3 +38,11 @@
 // absorbtion voltage to use for charging
 // recommendation: go lower to spare battery lifetime if you don't need the capacity
 #define CHARGER_ABSORPTION_VOLTAGE 52.5f
+
+/// advanced features ------------------------------------------------------------------------------
+
+// automatic close up in at given time (e.g. in the evening right after sunset)
+#define SCHEDULED_EXIT_ENABLED false
+#define SCHEDULED_EXIT_HOUR 18          // --> at 18:20 local time
+#define SCHEDULED_EXIT_MINUTE 22
+
