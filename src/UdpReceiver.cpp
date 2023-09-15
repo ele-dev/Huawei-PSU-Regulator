@@ -97,7 +97,7 @@ public:
                 short powerVal = static_cast<short>(atoi(recvBuffer));
                 
                 // filter out invalid unrealistic value (likely corrupted during transmission)
-                if(powerVal < -2000 || powerVal > 12000) {
+                if(powerVal < -30000 || powerVal > 20000) {
                     std::cerr << "[UDP-thread] Received invalid power state value: " << powerVal << " (ignore)" << std::endl;
                     continue;
                 } else {
