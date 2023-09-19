@@ -1,3 +1,23 @@
 .vscode
-*.o
 *.bak
+
+# CMake build directory
+/build*/
+
+# CMake-specific files
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+CMakeTmp/
+CTestTestfile.cmake
+Makefile
+cmake_install.cmake
+compile_commands.json
+install_manifest.txt
+
+# Compiled binaries and libraries
+*.o
+*.so
+*.dll
+*.exe
+
