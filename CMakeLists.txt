@@ -10,8 +10,8 @@ set(EXECUTABLE_OUTPUT_PATH "bin")
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 17)
 
-# Set the Raspberry Pi toolchain file
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/RaspberryPi.cmake)
+# Set the Raspberry Pi toolchain file (only for cross compiling)
+# set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/RaspberryPi.cmake)
 
 # Add your source files here
 set(SOURCES
