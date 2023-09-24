@@ -12,10 +12,13 @@ to charge a battery in a way so that almost no energy is fed back to the grid fo
 
 ## Quick setup
 1. Download the latest release (zip archive) on your target system and extract it
-2. Use the config.txt file to change runtime configuration
-3. Execute the binary file on the terminal
+2. Enter IP address in berry script, upload in tasmota root directory and restart tasmota
+3. Use the config.txt file to change runtime configuration of the regulator app
+4. Execute the regulator binary file on the terminal 
 
-## Build & Run
+Note: "Power_curr" in Berry script has to be adjusted to work with your smart meter interface setup
+
+## Build & Run on linux system
 1. Clone the repository on the linux system that is connected to the power supply via CAN
 2. Run ``` cmake . ``` and ``` make ``` in the project root directory to build an application binary
 3. Customize your runtime settings in bin/config.txt file
