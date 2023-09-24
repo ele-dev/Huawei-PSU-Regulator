@@ -11,10 +11,15 @@ to charge a battery in a way so that almost no energy is fed back to the grid fo
 - A working 48V battery system that can be charged with the Huawei R4850G2 power supply (e.g. Pylontech US2000/3000/5000 or custom 48V DIY Battery packs)
 
 ## Quick setup
-1. clone the repository on the linux system that is connected to the power supply via CAN
-2. go into the src folder and run ``` make clean ``` and ``` make ``` to build the application binary
-3. customize your settings in bin/config.txt file
-4. execute the command line application in the bin folder with ``` ./regulatorApp ``` (use ``` screen -dmS regualtor ./regulatorApp ``` to run detached screen)
+1. Download the latest release (zip archive) on your target system and extract it
+2. Use the config.txt file to change runtime configuration
+3. Execute the binary file on the terminal
+
+## Build & Run
+1. Clone the repository on the linux system that is connected to the power supply via CAN
+2. Run ``` cmake . ``` and ``` make ``` in the project root directory to build an application binary
+3. Customize your runtime settings in bin/config.txt file
+4. Execute the command line application in the bin folder with ``` ./regulatorApp ``` (use ``` screen -dmS regualtor ./regulatorApp ``` to run detached screen)
    
 ## Acknowledgements
 The code for the CAN commuication was based on work from craigpeacock
