@@ -6,8 +6,8 @@
 */
 
 // Includes
-#include "UdpReceiver.cpp"
-#include "PsuController.cpp"
+#include "UdpReceiver.h"
+#include "PsuController.h"
 #include "ConfigFile.h"
 #include "Utils.h"
 using std::this_thread::sleep_for;
@@ -23,7 +23,6 @@ void terminateSignalHandler(int);
 void powerRegulation();
 float currentBasedOnPower(float, float);
 bool scheduledClose();
-
 
 // ----- Main Function ----- //
 int main(int argc, char **argv) 
@@ -113,7 +112,7 @@ void powerRegulation() {
         if(abs(error) < cfg.getRegulatorErrorThreshold()) {
             continue;
         }
-        short powerCmd = static_cast<short>(psu->getCurrentIntputPower()) + error;
+        short powerCmd = static_cast<short>(psu->getCurrentInputPower()) + error;
 
         // set bounds for allowed power commands (min and max)
         if(powerCmd > cfg.getMaxChargePower()) {
