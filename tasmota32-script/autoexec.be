@@ -2,7 +2,7 @@ import json
 import math
 
 # configure power hysteresis here
-hysteresis = 3
+hysteresis = 4
 lastPower = 0
 u = udp()
 
