@@ -60,12 +60,25 @@ bool UdpReceiver::setup(short udpPort) {
         socklen_t len;
         len = sizeof(clientAddr);
 
+        auto lastMsgTime = steady_clock::now();
+		auto currentTime = steady_clock::now();
+        const short fakePowerCmd = 60000;           // must be higher than maximum PV production power
+
         // read and queue incoming messages until external stop signal
         char recvBuffer[MSGLEN];
         int bytesRead = 0;
         while(ptr->m_threadRunning) {
             bytesRead = recvfrom(ptr->m_socket, (char*)recvBuffer, MSGLEN, 0, (sockaddr*) &clientAddr, &len);
             if(bytesRead <= 0) {
+                // check the time passed since the last message was received
+                currentTime = steady_clock::now();
+                seconds timeElapsed = duration_cast<seconds>(currentTime - lastMsgTime);
+                if(timeElapsed.count() > 60) {
+                    // Tasmota smart meter downtime detected --> send high power command to set 0W charge power
+                    std::cerr << "[UDP-thread] Tasmota energy meter downtime detected! (timeout after 60s)" << std::endl;
+                    cmdQueue.push(fakePowerCmd);
+                    sleep_for(seconds(5));
+                }
                 continue;
             }
             recvBuffer[bytesRead] = '\0';     // String nulltermination
@@ -83,6 +96,9 @@ bool UdpReceiver::setup(short udpPort) {
 
             // Put new value on the command queue for processing
             cmdQueue.push(powerVal);
+
+            // save timestamp of last received message for downtime detection 
+            lastMsgTime = steady_clock::now();
         }
                 
         std::cout << "[UDP-thread] closeup --> finish thread now" << std::endl;
