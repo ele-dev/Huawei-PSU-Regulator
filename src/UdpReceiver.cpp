@@ -62,7 +62,7 @@ bool UdpReceiver::setup(short udpPort) {
 
         auto lastMsgTime = steady_clock::now();
 		auto currentTime = steady_clock::now();
-        const short fakePowerCmd = 60000;           // must be higher than maximum PV production power
+        const short fakePowerCmd = 30000;   
 
         // read and queue incoming messages until external stop signal
         char recvBuffer[MSGLEN];
