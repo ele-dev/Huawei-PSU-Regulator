@@ -17,8 +17,14 @@
 #include <unistd.h>
 #include <bits/stdc++.h>
 #include <iostream>
+#include <chrono>
 
 #include "Queue.cpp"
+
+using std::chrono::steady_clock;
+using std::chrono::seconds;
+using std::chrono::duration_cast;
+using std::this_thread::sleep_for;
 
 #define MSGLEN 1024
 
