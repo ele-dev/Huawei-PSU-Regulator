@@ -6,7 +6,9 @@
 #include "UdpReceiver.h"
 
 extern Queue<short> cmdQueue;
+extern PsuController psu;
 
+// constructor and destructor
 UdpReceiver::UdpReceiver() {
     m_threadRunning = false;
     std::cout << "[UDP] receiver constructed" << std::endl;
@@ -16,6 +18,7 @@ UdpReceiver::~UdpReceiver() {
     std::cout << "[UDP] receiver destructed" << std::endl;
 }
 
+// method to setup receiver and start listening
 bool UdpReceiver::setup(short udpPort) {
     // only setup once
     if(m_threadRunning) {
@@ -94,6 +97,11 @@ bool UdpReceiver::setup(short udpPort) {
                 std::cout << "[UDP-thread] Received updated power state: " << powerVal << std::endl;
             }
 
+            // compose a power state object out of the new command and the current AC input power of the PSU
+            PowerState state;
+            state.tasmotaPowerCmd = powerVal;
+            state.psuAcInputPower = static_cast<short>(psu.getCurrentInputPower());
+
             // Put new value on the command queue for processing
             cmdQueue.push(powerVal);
 
@@ -107,7 +115,7 @@ bool UdpReceiver::setup(short udpPort) {
     return true;
 }
 
-// close the udp server socket
+// method to close the udp receiver along with it's resources
 void UdpReceiver::closeUp() {
     // signal listener thread to stop
     m_threadRunning = false;

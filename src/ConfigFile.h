@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "config.h"
+#include "default-conf.h"
 
 class ConfigFile
 {

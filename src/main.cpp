@@ -10,18 +10,19 @@
 #include "PsuController.h"
 #include "ConfigFile.h"
 #include "Utils.h"
+
 using std::this_thread::sleep_for;
 
 // global instances
-PsuController* psu = nullptr;
+PsuController psu;
 Queue<short> cmdQueue;
-UdpReceiver* rc = nullptr;
+UdpReceiver receiver;
 ConfigFile cfg("config.txt");
 
 // function prototypes
 void terminateSignalHandler(int);
 void powerRegulation();
-float currentBasedOnPower(float, float);
+float calculateCurrentBasedOnPower(float, float);
 bool scheduledClose();
 
 // ----- Main Function ----- //
@@ -48,33 +49,27 @@ int main(int argc, char **argv)
     // print out the config variable overview
     cfg.printConfig();
 
-    // create a psu controller instance and store pointer on it globally
-    PsuController pc;
-    psu = &pc;
-
     // attempt to start the PSU controller 
-    status = pc.setup(cfg.getCanInterfaceName());
+    status = psu.setup(cfg.getCanInterfaceName());
     if(!status) {
         terminateSignalHandler(EXIT_FAILURE);
     }
 
-    // create udp receiver and store pointer on it globally
-    UdpReceiver receiver;
-    rc = &receiver;
-
-    // attempt to start udp receiver to listen for power change events
+    // attempt to start udp receiver to listen for power change messages
     status = receiver.setup(cfg.getUdpPort());
     if(!status) {
         terminateSignalHandler(EXIT_FAILURE);
     }
 
-    sleep_for(milliseconds(2200));          // wait a bit 
+    // don't continue immediately
+    sleep_for(milliseconds(2200));          // wait a little bit 
     std::cout << "[Main] Setup completed" << std::endl;
 
+    // enter the main application loop, the regulator
     powerRegulation();
     std::cout << "[Main] --> Scheduled Application Exit now" << std::endl;
 
-    // Close up
+    // close up
     terminateSignalHandler(EXIT_SUCCESS);
 
     return EXIT_SUCCESS;
@@ -82,14 +77,9 @@ int main(int argc, char **argv)
 
 void terminateSignalHandler(int code) {
     // shutdown sockets, threads and queue
-    if(rc != nullptr) {
-        rc->closeUp();
-    }
-    if(psu != nullptr) {
-        psu->shutdown();
-    }
+    receiver.closeUp();
+    psu.shutdown();
     cmdQueue.clear();
-    
     exit(code);
 }
 
@@ -112,7 +102,7 @@ void powerRegulation() {
         if(abs(error) < cfg.getRegulatorErrorThreshold()) {
             continue;
         }
-        short powerCmd = static_cast<short>(psu->getCurrentInputPower()) + error;
+        short powerCmd = static_cast<short>(psu.getCurrentInputPower()) + error;
 
         // set bounds for allowed power commands (min and max)
         if(powerCmd > cfg.getMaxChargePower()) {
@@ -124,10 +114,10 @@ void powerRegulation() {
         }
 
         // translate power command into max current command. use current output voltage for calculation
-        float maxCurrentCmd = currentBasedOnPower(static_cast<float>(powerCmd), psu->getCurrentOutputVoltage());
+        float maxCurrentCmd = calculateCurrentBasedOnPower(static_cast<float>(powerCmd), psu.getCurrentOutputVoltage());
 
         // send max current command to the PSU and idle a short time 
-        psu->setMaxCurrent(maxCurrentCmd, false);
+        psu.setMaxCurrent(maxCurrentCmd, false);
         sleep_for(milliseconds(cfg.getRegulatorIdleTime()));
     }
 }
@@ -139,7 +129,7 @@ float round(float var)
     return (float)value / 100;
 }
 
-float currentBasedOnPower(float power, float batteryVoltage) {
+float calculateCurrentBasedOnPower(float power, float batteryVoltage) {
     // Determine expected AC/DC conversion efficiency based on power command
     float eff = 0.0f;
     if(power >= 1 && power < 461) {
