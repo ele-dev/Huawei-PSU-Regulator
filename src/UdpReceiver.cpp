@@ -93,10 +93,8 @@ bool UdpReceiver::setup(short udpPort) {
             if(powerVal < -30000 || powerVal > 20000) {
                 std::cerr << "[UDP-thread] Received invalid power state value: " << powerVal << " (ignore)" << std::endl;
                 continue;
-            } else {
-                std::cout << "[UDP-thread] Received updated power state: " << powerVal << std::endl;
             }
-
+            
             // compose a power state object out of the new command and the current AC input power of the PSU
             PowerState pState;
             pState.tasmotaPowerCmd = powerVal;

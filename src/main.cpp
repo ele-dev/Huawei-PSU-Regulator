@@ -96,11 +96,14 @@ void powerRegulation() {
             continue;
         }
 
-        std::cout << "Processing power state: Tasmota=" << latestPowerState.tasmotaPowerCmd << ", AC-Charge=" << latestPowerState.psuAcInputPower << std::endl;
-
         // calculate error (absolute difference from target value)
         // don't try to compensate for very small errors
         error = cfg.getTargetGridPower() - latestPowerState.tasmotaPowerCmd;
+        std::cout << "[Regulator] Processing received power state: Grid-Load=" 
+                    << latestPowerState.tasmotaPowerCmd << "W, Error=" 
+                    << error << "W, AC-Charge="
+                    << latestPowerState.psuAcInputPower << "W" << std::endl;
+
         if(abs(error) < cfg.getRegulatorErrorThreshold()) {
             continue;
         }
@@ -120,6 +123,9 @@ void powerRegulation() {
 
         // send max current command to the PSU and idle a short time 
         psu.setMaxCurrent(maxCurrentCmd, false);
+
+        std::cout << "[Regulator] Target AC charger power changed --> " << powerCmd << "W" << std::endl;
+
         sleep_for(milliseconds(cfg.getRegulatorIdleTime()));
     }
 }
