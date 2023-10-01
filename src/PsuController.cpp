@@ -9,7 +9,7 @@ extern ConfigFile cfg;
 
 // Constructor
 PsuController::PsuController() {
-	std::cout << "[PSU] Controller created" << std::endl;
+	// std::cout << "[PSU] Controller created" << std::endl;
 	m_threadRunning = false;
 	m_lastCurrentCmd = 0.0f;
 	m_cmdAckFlag = false;
@@ -17,7 +17,7 @@ PsuController::PsuController() {
 
 // Destructor
 PsuController::~PsuController() {
-	std::cout << "[PSU] controller destructed" << std::endl;
+	// std::cout << "[PSU] controller destructed" << std::endl;
 }
 
 // public methods // 

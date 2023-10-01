@@ -15,7 +15,7 @@ using std::this_thread::sleep_for;
 
 // global instances
 PsuController psu;
-Queue<short> cmdQueue;
+Queue<PowerState> cmdQueue;
 UdpReceiver receiver;
 ConfigFile cfg("config.txt");
 
@@ -84,7 +84,7 @@ void terminateSignalHandler(int code) {
 }
 
 void powerRegulation() {
-    short latestPowerState = 0;
+    PowerState latestPowerState;
     short error = 0;
 
     // main loop of the power regulator
@@ -96,13 +96,15 @@ void powerRegulation() {
             continue;
         }
 
+        std::cout << "Processing power state: Tasmota=" << latestPowerState.tasmotaPowerCmd << ", AC-Charge=" << latestPowerState.psuAcInputPower << std::endl;
+
         // calculate error (absolute difference from target value)
         // don't try to compensate for very small errors
-        error = cfg.getTargetGridPower() - latestPowerState;
+        error = cfg.getTargetGridPower() - latestPowerState.tasmotaPowerCmd;
         if(abs(error) < cfg.getRegulatorErrorThreshold()) {
             continue;
         }
-        short powerCmd = static_cast<short>(psu.getCurrentInputPower()) + error;
+        short powerCmd = latestPowerState.psuAcInputPower + error;
 
         // set bounds for allowed power commands (min and max)
         if(powerCmd > cfg.getMaxChargePower()) {
