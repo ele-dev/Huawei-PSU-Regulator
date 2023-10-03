@@ -13,3 +13,9 @@ extern ConfigFile cfg;
 
 // function prototypes
 bool scheduledClose();
+
+struct PowerState
+{
+    short tasmotaPowerCmd;
+    short psuAcInputPower;
+};

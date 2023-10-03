@@ -5,17 +5,20 @@
 
 #include "UdpReceiver.h"
 
-extern Queue<short> cmdQueue;
+extern Queue<PowerState> cmdQueue;
+extern PsuController psu;
 
+// constructor and destructor
 UdpReceiver::UdpReceiver() {
     m_threadRunning = false;
-    std::cout << "[UDP] receiver constructed" << std::endl;
+    // std::cout << "[UDP] receiver constructed" << std::endl;
 }
 
 UdpReceiver::~UdpReceiver() {
-    std::cout << "[UDP] receiver destructed" << std::endl;
+    // std::cout << "[UDP] receiver destructed" << std::endl;
 }
 
+// method to setup receiver and start listening
 bool UdpReceiver::setup(short udpPort) {
     // only setup once
     if(m_threadRunning) {
@@ -62,7 +65,7 @@ bool UdpReceiver::setup(short udpPort) {
 
         auto lastMsgTime = steady_clock::now();
 		auto currentTime = steady_clock::now();
-        const short fakePowerCmd = 30000;   
+        const PowerState fakePowerState = {30000, 0};
 
         // read and queue incoming messages until external stop signal
         char recvBuffer[MSGLEN];
@@ -74,9 +77,9 @@ bool UdpReceiver::setup(short udpPort) {
                 currentTime = steady_clock::now();
                 seconds timeElapsed = duration_cast<seconds>(currentTime - lastMsgTime);
                 if(timeElapsed.count() > 60) {
-                    // Tasmota smart meter downtime detected --> send high power command to set 0W charge power
+                    // Tasmota smart meter downtime detected --> send faked high power state to set 0W charge power
                     std::cerr << "[UDP-thread] Tasmota energy meter downtime detected! (timeout after 60s)" << std::endl;
-                    cmdQueue.push(fakePowerCmd);
+                    cmdQueue.push(fakePowerState);
                     sleep_for(seconds(5));
                 }
                 continue;
@@ -90,12 +93,15 @@ bool UdpReceiver::setup(short udpPort) {
             if(powerVal < -30000 || powerVal > 20000) {
                 std::cerr << "[UDP-thread] Received invalid power state value: " << powerVal << " (ignore)" << std::endl;
                 continue;
-            } else {
-                std::cout << "[UDP-thread] Received updated power state: " << powerVal << std::endl;
             }
+            
+            // compose a power state object out of the new command and the current AC input power of the PSU
+            PowerState pState;
+            pState.tasmotaPowerCmd = powerVal;
+            pState.psuAcInputPower = static_cast<short>(psu.getCurrentInputPower());
 
             // Put new value on the command queue for processing
-            cmdQueue.push(powerVal);
+            cmdQueue.push(pState);
 
             // save timestamp of last received message for downtime detection 
             lastMsgTime = steady_clock::now();
@@ -107,7 +113,7 @@ bool UdpReceiver::setup(short udpPort) {
     return true;
 }
 
-// close the udp server socket
+// method to close the udp receiver along with it's resources
 void UdpReceiver::closeUp() {
     // signal listener thread to stop
     m_threadRunning = false;
