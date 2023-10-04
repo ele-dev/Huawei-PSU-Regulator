@@ -22,6 +22,12 @@ PsuController::~PsuController() {
 
 // public methods // 
 bool PsuController::setup(const char* interfaceName) {
+	// initialize the slot detect control
+	if(!initSlotDetect()) {
+		std::cerr << "Failed to init slot detect control!" << std::endl;
+		return false;
+	}
+
 	// create can socket
 	m_canSocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 	if(m_canSocket < 0) {
@@ -53,7 +59,6 @@ bool PsuController::setup(const char* interfaceName) {
 
 		// send initial volatage and current commands, don't output power by default
 		ptr->setMaxVoltage(cfg.getChargerAbsorptionVoltage(), false);		// online mode
-		// ptr->setMaxCurrent(0.0f, false);		// " "
 
 		// send first request for status report
 		ptr->requestStatusData();
@@ -208,6 +213,13 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 	if(current != m_lastCurrentCmd) {
 		m_cmdAckFlag = false;
 		std::cout << "[PSU] sent new current command: " << current << "A" << std::endl;
+
+		// reenable slot detect after standby periods (raspberry pi only)
+		if(m_lastCurrentCmd == 0.0f && current > 0.0f) {
+			#ifdef _TARGET_RASPI
+				digitalWrite(SD_PIN, HIGH);
+			#endif
+		}
 	}
 
 	// save as last current command
@@ -378,4 +390,17 @@ void PsuController::processAckFrame(uint8_t *frame) {
 			printf("%s setting unknown parameter (0x%02X)\n", error ? "Error" : "Success", frame[1]);
 		}
 	}
+}
+
+// setup wiringpi for direct GPIO interfacing (raspberry pi only)
+bool PsuController::initSlotDetect() {
+	#ifdef _TARGET_RASPI
+
+		wiringPiSetupGpio();
+		pinMode(SD_PIN, OUTPUT);
+		digitalWrite(SD_PIN, LOW);
+
+	#endif
+
+	return true;
 }

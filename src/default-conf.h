@@ -10,6 +10,9 @@
 // for debugging purposes
 // #define _VERBOSE_OUTPUT
 
+// compile flag for raspberry pi exclusive functionality
+// #define _TARGET_RASPI
+
 /*
     These are the default fallback values for all config variables.
     They are only used in case the config file doesn't contain valid entries
