@@ -125,6 +125,12 @@ bool PsuController::setup(const char* interfaceName) {
 }
 
 void PsuController::shutdown() {
+	// disable slot detect (on raspberry pi only)
+	#ifdef _TARGET_RASPI 
+		digitalWrite(SD_PIN, LOW);
+		std::cout << "[PSU] Slot detect disabled before exit" << std::endl;
+	#endif
+
 	std::cout << "try stop thread from running" << std::endl;
 	m_threadRunning = false;
 
@@ -214,10 +220,11 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 		m_cmdAckFlag = false;
 		std::cout << "[PSU] sent new current command: " << current << "A" << std::endl;
 
-		// reenable slot detect after standby periods (raspberry pi only)
+		// reenable slot detect after standby periods (on raspberry pi only)
 		if(m_lastCurrentCmd == 0.0f && current > 0.0f) {
 			#ifdef _TARGET_RASPI
 				digitalWrite(SD_PIN, HIGH);
+				std::cout << "[PSU] Slot detect (re)enabled" << std::endl;
 			#endif
 		}
 	}
@@ -392,13 +399,14 @@ void PsuController::processAckFrame(uint8_t *frame) {
 	}
 }
 
-// setup wiringpi for direct GPIO interfacing (raspberry pi only)
+// setup wiringpi for direct GPIO interfacing (on raspberry pi only)
 bool PsuController::initSlotDetect() {
 	#ifdef _TARGET_RASPI
 
 		wiringPiSetupGpio();
 		pinMode(SD_PIN, OUTPUT);
-		digitalWrite(SD_PIN, LOW);
+		digitalWrite(SD_PIN, HIGH);
+		std::cout << "[PSU] Slot detect initialized" << std::endl;
 
 	#endif
 
