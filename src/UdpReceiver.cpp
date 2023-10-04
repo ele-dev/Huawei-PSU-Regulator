@@ -52,7 +52,7 @@ bool UdpReceiver::setup(short udpPort) {
     }
 
     // launch listener thread 
-    m_listenerThread = std::thread([](UdpReceiver* ptr) {
+    m_listenerThread = std::thread([] (UdpReceiver* ptr) {
         ptr->m_threadRunning = true;
         std::cout << "[UDP-thread] listener thread running ..." << std::endl;
     

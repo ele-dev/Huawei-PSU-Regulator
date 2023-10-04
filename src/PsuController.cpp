@@ -115,6 +115,14 @@ bool PsuController::setup(const char* interfaceName) {
 			if(timeElapsed.count() > 5000) {
 				ptr->setMaxCurrent(ptr->m_lastCurrentCmd, false);
 				lastTime2 = steady_clock::now();
+
+				// disable slot detect when target output power and actual output power are both zero
+				if(ptr->m_lastCurrentCmd == 0.0f && ptr->getCurrentOutputCurrent() < 0.22f) {
+					#ifdef _TARGET_RASPI
+						digitalWrite(SD_PIN, LOW);
+						std::cout << "[PSU] Slot detect disabled" << std::endl;
+					#endif
+				}
 			}
 		}
 
@@ -131,10 +139,8 @@ void PsuController::shutdown() {
 		std::cout << "[PSU] Slot detect disabled before exit" << std::endl;
 	#endif
 
-	std::cout << "try stop thread from running" << std::endl;
-	m_threadRunning = false;
-
 	// wait for worker thread
+	m_threadRunning = false;
 	m_workerTh.join();
 
 	// close the CAN socket
@@ -378,7 +384,7 @@ void PsuController::processAckFrame(uint8_t *frame) {
 			
 		case 0x03:
 		{
-			currentAck = (float)value / MAX_CURRENT_MULTIPLIER;
+			currentAck = static_cast<float>(value) / MAX_CURRENT_MULTIPLIER;
 			if(m_cmdAckFlag == false && currentAck == m_lastCurrentCmd) {
 				printf("%s setting online current to %.02fA\n", error ? "Error" : "Success", currentAck);
 				m_cmdAckFlag = true;
@@ -388,7 +394,7 @@ void PsuController::processAckFrame(uint8_t *frame) {
 			
 		case 0x04:
 		{
-			printf("%s setting non-volatile (offline) current to %.02fA\n", error ? "Error" : "Success", (float)value / MAX_CURRENT_MULTIPLIER);
+			printf("%s setting non-volatile (offline) current to %.02fA\n", error ? "Error" : "Success", static_cast<float>(value) / MAX_CURRENT_MULTIPLIER);
 			break;
 		}
 			
@@ -402,12 +408,10 @@ void PsuController::processAckFrame(uint8_t *frame) {
 // setup wiringpi for direct GPIO interfacing (on raspberry pi only)
 bool PsuController::initSlotDetect() {
 	#ifdef _TARGET_RASPI
-
 		wiringPiSetupGpio();
 		pinMode(SD_PIN, OUTPUT);
-		digitalWrite(SD_PIN, HIGH);
+		digitalWrite(SD_PIN, LOW);
 		std::cout << "[PSU] Slot detect initialized" << std::endl;
-
 	#endif
 
 	return true;

@@ -134,7 +134,7 @@ void powerRegulation() {
 float round(float var)
 {
     float value = (int)(var * 100 + .5);
-    return (float)value / 100;
+    return static_cast<float>(value) / 100;
 }
 
 float calculateCurrentBasedOnPower(float power, float batteryVoltage) {
