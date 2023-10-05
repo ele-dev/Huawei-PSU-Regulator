@@ -410,6 +410,8 @@ bool PsuController::initSlotDetect() {
 	#ifdef _TARGET_RASPI
 		wiringPiSetupGpio();
 		pinMode(SD_PIN, OUTPUT);
+
+		// turn off slot detect at application startup
 		digitalWrite(SD_PIN, LOW);
 		std::cout << "[PSU] Slot detect initialized" << std::endl;
 	#endif

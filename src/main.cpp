@@ -99,9 +99,9 @@ void powerRegulation() {
         // calculate error (absolute difference from target value)
         // don't try to compensate for very small errors
         error = cfg.getTargetGridPower() - latestPowerState.tasmotaPowerCmd;
-        std::cout << "[Regulator] Processing received power state: Grid-Load = " 
-                    << latestPowerState.tasmotaPowerCmd << "W, Error = " 
-                    << error << "W, AC-Charge = "
+        std::cout << "[Regulator] Processing received power state: grid-load = " 
+                    << latestPowerState.tasmotaPowerCmd << "W, deviation = " 
+                    << error << "W, AC-charge = "
                     << latestPowerState.psuAcInputPower << "W" << std::endl;
 
         if(abs(error) < cfg.getRegulatorErrorThreshold()) {
