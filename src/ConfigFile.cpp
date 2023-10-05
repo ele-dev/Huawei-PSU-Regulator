@@ -21,6 +21,8 @@ ConfigFile::ConfigFile(std::string filename) {
     m_scheduledExitEnabled = SCHEDULED_EXIT_ENABLED;
     m_scheduledExitHour = SCHEDULED_EXIT_HOUR;
     m_scheduledExitMinute = SCHEDULED_EXIT_MINUTE;
+    m_slotDetectCtlEnabled = SD_CONTROL_ENABLED;
+    m_slotDetectKeepAliveTime = SD_KEEP_ALIVE_TIME;
 }
 
 ConfigFile::~ConfigFile() {}
@@ -64,8 +66,10 @@ void ConfigFile::printConfig() const {
     std::cout << "Regulator error threshold:  " << m_regulatorErrorThreshold << " W" << std::endl;
     std::cout << "Regulator idle time:        " << m_regulatorIdleTime << " msec" << std::endl;
     std::cout << "Charger absorption voltage: " << m_chargerAbsorptionVoltage << " V" << std::endl;
-    std::cout << "Scheduled exit enabled:     " << (m_scheduledExitEnabled ? "true" : "false") << std::endl;
+    std::cout << "Scheduled exit enabled:     " << (m_scheduledExitEnabled ? "yes" : "no") << std::endl;
     std::cout << "Scheduled exit time:        " << m_scheduledExitHour << ":" << m_scheduledExitMinute << std::endl;
+    std::cout << "Slot detect control:        " << (m_slotDetectCtlEnabled ? "active" : "not active") << std::endl;
+    std::cout << "Slot detect keep alive:     " << m_slotDetectKeepAliveTime << " sec" << std::endl;
     std::cout << std::endl;
 }
 
@@ -122,6 +126,15 @@ void ConfigFile::parseLine(std::string line) {
             if(m_scheduledExitMinute > 59) {
                 std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
                 m_scheduledExitMinute = 59;
+            }
+        } else if(key == "slotdetect-control-enabled") {
+            m_slotDetectCtlEnabled = value == "true" ? true : false;
+        } else if(key == "slotdetect-keep-alive-time") {
+            m_slotDetectKeepAliveTime = stoi(value);
+            // must be at least 10 seconds long
+            if(m_slotDetectKeepAliveTime < 10) {
+                std::cerr << "slot detect keep alive time must be at least 10 seconds!" << std::endl;
+                m_slotDetectKeepAliveTime = SD_KEEP_ALIVE_TIME;
             }
         } else {
             std::cerr << "[Config] Invalid config variable named " << key << std::endl;
@@ -186,4 +199,12 @@ int ConfigFile::getScheduledExitHour() const {
 
 int ConfigFile::getScheduledExitMinute() const {
     return m_scheduledExitMinute;
+}
+
+bool ConfigFile::isSlotDetectControlEnabled() const {
+    return m_slotDetectCtlEnabled;
+}
+
+int ConfigFile::getSlotDetectKeepAliveTime() const {
+    return m_slotDetectKeepAliveTime;
 }

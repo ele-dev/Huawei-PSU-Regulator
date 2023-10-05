@@ -115,14 +115,6 @@ bool PsuController::setup(const char* interfaceName) {
 			if(timeElapsed.count() > 5000) {
 				ptr->setMaxCurrent(ptr->m_lastCurrentCmd, false);
 				lastTime2 = steady_clock::now();
-
-				// disable slot detect when target output power and actual output power are both zero
-				if(ptr->m_lastCurrentCmd == 0.0f && ptr->getCurrentOutputCurrent() < 0.22f) {
-					#ifdef _TARGET_RASPI
-						// digitalWrite(SD_PIN, LOW);
-						// std::cout << "[PSU] Slot detect disabled" << std::endl;
-					#endif
-				}
 			}
 		}
 
@@ -229,8 +221,10 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 		// reenable slot detect after standby periods (on raspberry pi only)
 		if(m_lastCurrentCmd == 0.0f && current > 0.0f) {
 			#ifdef _TARGET_RASPI
-				digitalWrite(SD_PIN, HIGH);
-				std::cout << "[PSU] Slot detect (re)enabled" << std::endl;
+				if(cfg.isSlotDetectControlEnabled()) {
+					digitalWrite(SD_PIN, HIGH);
+					std::cout << "[PSU] Slot detect (re)enabled" << std::endl;
+				}
 			#endif
 		}
 	}
@@ -411,8 +405,12 @@ bool PsuController::initSlotDetect() {
 		wiringPiSetupGpio();
 		pinMode(SD_PIN, OUTPUT);
 
-		// turn off slot detect at application startup
-		digitalWrite(SD_PIN, LOW);
+		// turn off slot detect at application startup if feature is enabled
+		if(cfg.isSlotDetectControlEnabled()) {
+			digitalWrite(SD_PIN, LOW);
+		} else {
+			digitalWrite(SD_PIN, HIGH);		// when sd control disabled just turn on once 
+		}
 		std::cout << "[PSU] Slot detect initialized" << std::endl;
 	#endif
 
