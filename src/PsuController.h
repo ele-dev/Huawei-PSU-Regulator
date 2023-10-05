@@ -85,6 +85,7 @@ class PsuController
 	std::atomic<bool> m_threadRunning;
 	float m_lastCurrentCmd;
 	bool m_cmdAckFlag;
+	unsigned int m_secondsSinceLastCharge;
 
 public:
     PsuController();
