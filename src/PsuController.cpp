@@ -119,8 +119,8 @@ bool PsuController::setup(const char* interfaceName) {
 				// disable slot detect when target output power and actual output power are both zero
 				if(ptr->m_lastCurrentCmd == 0.0f && ptr->getCurrentOutputCurrent() < 0.22f) {
 					#ifdef _TARGET_RASPI
-						digitalWrite(SD_PIN, LOW);
-						std::cout << "[PSU] Slot detect disabled" << std::endl;
+						// digitalWrite(SD_PIN, LOW);
+						// std::cout << "[PSU] Slot detect disabled" << std::endl;
 					#endif
 				}
 			}
