@@ -29,7 +29,7 @@ include_directories(
 )
 
 # Add any external libraries (e.g., wiringPi)
-find_library(WIRINGPI_LIB wiringPi)
+find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
 find_library(PTHREAD_LIB pthread)
 
 # Create the executable
@@ -37,6 +37,6 @@ add_executable(regulatorApp ${SOURCES})
 
 # Link the necessary libraries
 target_link_libraries(regulatorApp
-    ${WIRINGPI_LIB}
+    ${WIRINGPI_LIB}                             # (raspberry pi only)
     ${PTHREAD_LIB}
 )
