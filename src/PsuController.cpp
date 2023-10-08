@@ -13,6 +13,7 @@ PsuController::PsuController() {
 	m_threadRunning = false;
 	m_lastCurrentCmd = 0.0f;
 	m_cmdAckFlag = false;
+	m_secondsSinceLastCharge = 0;
 }
 
 // Destructor
@@ -52,8 +53,9 @@ bool PsuController::setup(const char* interfaceName) {
 
 	// spawn worker thread
 	m_workerTh = std::thread([] (PsuController* ptr) {
-		auto lastTime = steady_clock::now(), lastTime2 = steady_clock::now();
-		auto currentTime = steady_clock::now(), currentTime2 = steady_clock::now();
+		auto currentTime = steady_clock::now();
+		auto lastStatusReqTime = currentTime, lastCurrentCmdTime = currentTime;
+		milliseconds timeElapsed;
 		ptr->m_threadRunning = true;
 		std::cout << "[PSU-thread] worker thread running ..." << std::endl;
 
@@ -103,26 +105,36 @@ bool PsuController::setup(const char* interfaceName) {
 
 			// every second request status update
 			currentTime = steady_clock::now();
-			milliseconds timeElapsed = duration_cast<milliseconds>(currentTime - lastTime);
+			timeElapsed = duration_cast<milliseconds>(currentTime - lastStatusReqTime);
 			if(timeElapsed.count() > 1000) {
 				ptr->requestStatusData();
-				lastTime = steady_clock::now();
+				lastStatusReqTime = steady_clock::now();
 			}
 
 			// every 5 sec repeat last current command to ensure PSU stays in online mode
-			currentTime2 = steady_clock::now();
-			timeElapsed = duration_cast<milliseconds>(currentTime2 - lastTime2);
+			currentTime = steady_clock::now();
+			timeElapsed = duration_cast<milliseconds>(currentTime - lastCurrentCmdTime);
 			if(timeElapsed.count() > 5000) {
 				ptr->setMaxCurrent(ptr->m_lastCurrentCmd, false);
-				lastTime2 = steady_clock::now();
-
-				// disable slot detect when target output power and actual output power are both zero
-				if(ptr->m_lastCurrentCmd == 0.0f && ptr->getCurrentOutputCurrent() < 0.22f) {
-					#ifdef _TARGET_RASPI
-						digitalWrite(SD_PIN, LOW);
-						std::cout << "[PSU] Slot detect disabled" << std::endl;
-					#endif
+				if(ptr->m_lastCurrentCmd == 0.0f) {
+					// tick the slot detect keep alive timer
+					ptr->m_secondsSinceLastCharge += static_cast<unsigned int>(timeElapsed.count() / 1000);
+					if(ptr->m_secondsSinceLastCharge >= cfg.getSlotDetectKeepAliveTime()) {
+						// turn off slot detect to enter stand by mode for power saving
+						#ifdef _TARGET_RASPI
+							if(cfg.isSlotDetectControlEnabled()) {
+								digitalWrite(SD_PIN, LOW);
+								std::cout << "[PSU-thread] Turn off slot detect --> standby mode" << std::endl;
+							}
+						#endif
+						ptr->m_secondsSinceLastCharge = 0;
+					}
+				} else {
+					// reset slot detect keep alive timer when last current command greater than zero
+					ptr->m_secondsSinceLastCharge = 0;
 				}
+
+				lastCurrentCmdTime = steady_clock::now();
 			}
 		}
 
@@ -229,8 +241,10 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 		// reenable slot detect after standby periods (on raspberry pi only)
 		if(m_lastCurrentCmd == 0.0f && current > 0.0f) {
 			#ifdef _TARGET_RASPI
-				digitalWrite(SD_PIN, HIGH);
-				std::cout << "[PSU] Slot detect (re)enabled" << std::endl;
+				if(cfg.isSlotDetectControlEnabled()) {
+					digitalWrite(SD_PIN, HIGH);
+					std::cout << "[PSU] Slot detect (re)enabled" << std::endl;
+				}
 			#endif
 		}
 	}
@@ -410,7 +424,13 @@ bool PsuController::initSlotDetect() {
 	#ifdef _TARGET_RASPI
 		wiringPiSetupGpio();
 		pinMode(SD_PIN, OUTPUT);
-		digitalWrite(SD_PIN, LOW);
+
+		// turn off slot detect at application startup if feature is enabled
+		if(cfg.isSlotDetectControlEnabled()) {
+			digitalWrite(SD_PIN, LOW);
+		} else {
+			digitalWrite(SD_PIN, HIGH);		// when sd control disabled just turn on once 
+		}
 		std::cout << "[PSU] Slot detect initialized" << std::endl;
 	#endif
 

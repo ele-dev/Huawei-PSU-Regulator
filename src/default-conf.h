@@ -49,3 +49,7 @@
 #define SCHEDULED_EXIT_HOUR 18          // --> at 18:20 local time
 #define SCHEDULED_EXIT_MINUTE 22
 
+// automatic slot detect control via GPIO pins (on raspberry pi only)
+#define SD_CONTROL_ENABLED false
+#define SD_KEEP_ALIVE_TIME 60
+
