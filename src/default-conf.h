@@ -10,6 +10,9 @@
 // for debugging purposes
 // #define _VERBOSE_OUTPUT
 
+// compile flag for raspberry pi exclusive functionality
+#define _TARGET_RASPI
+
 /*
     These are the default fallback values for all config variables.
     They are only used in case the config file doesn't contain valid entries
@@ -45,4 +48,8 @@
 #define SCHEDULED_EXIT_ENABLED false
 #define SCHEDULED_EXIT_HOUR 18          // --> at 18:20 local time
 #define SCHEDULED_EXIT_MINUTE 22
+
+// automatic slot detect control via GPIO pins (on raspberry pi only)
+#define SD_CONTROL_ENABLED false
+#define SD_KEEP_ALIVE_TIME 60
 

@@ -26,6 +26,8 @@ class ConfigFile
     float m_chargerAbsorptionVoltage;
     bool m_scheduledExitEnabled;
     int m_scheduledExitHour, m_scheduledExitMinute;
+    bool m_slotDetectCtlEnabled;
+    int m_slotDetectKeepAliveTime;
 
 public:
     ConfigFile(std::string);
@@ -46,6 +48,8 @@ public:
     bool isScheduledExitEnabled() const;
     int getScheduledExitHour() const;
     int getScheduledExitMinute() const;
+    bool isSlotDetectControlEnabled() const;
+    int getSlotDetectKeepAliveTime() const;
 
 private:
     void parseLine(std::string);

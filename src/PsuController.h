@@ -27,9 +27,16 @@
 
 #include "ConfigFile.h"
 
+#ifdef _TARGET_RASPI
+	#include <wiringPi.h>
+#endif
+
 using std::chrono::steady_clock;
 using std::chrono::milliseconds;
 using std::chrono::duration_cast;
+
+// GPIO pin that controls the slot detect relay (active high)
+#define SD_PIN 17
 
 // config variables ---------------------
 #define MAX_CURRENT_MULTIPLIER		20
@@ -78,6 +85,7 @@ class PsuController
 	std::atomic<bool> m_threadRunning;
 	float m_lastCurrentCmd;
 	bool m_cmdAckFlag;
+	unsigned int m_secondsSinceLastCharge;
 
 public:
     PsuController();
@@ -100,5 +108,5 @@ private:
     bool sendCanFrame(struct can_frame);
     void updateParams(uint8_t*);
     void processAckFrame(uint8_t*);
-
+	bool initSlotDetect();
 };

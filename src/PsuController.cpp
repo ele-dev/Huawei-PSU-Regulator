@@ -13,6 +13,7 @@ PsuController::PsuController() {
 	m_threadRunning = false;
 	m_lastCurrentCmd = 0.0f;
 	m_cmdAckFlag = false;
+	m_secondsSinceLastCharge = 0;
 }
 
 // Destructor
@@ -22,6 +23,12 @@ PsuController::~PsuController() {
 
 // public methods // 
 bool PsuController::setup(const char* interfaceName) {
+	// initialize the slot detect control
+	if(!initSlotDetect()) {
+		std::cerr << "Failed to init slot detect control!" << std::endl;
+		return false;
+	}
+
 	// create can socket
 	m_canSocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 	if(m_canSocket < 0) {
@@ -46,14 +53,14 @@ bool PsuController::setup(const char* interfaceName) {
 
 	// spawn worker thread
 	m_workerTh = std::thread([] (PsuController* ptr) {
-		auto lastTime = steady_clock::now(), lastTime2 = steady_clock::now();
-		auto currentTime = steady_clock::now(), currentTime2 = steady_clock::now();
+		auto currentTime = steady_clock::now();
+		auto lastStatusReqTime = currentTime, lastCurrentCmdTime = currentTime;
+		milliseconds timeElapsed;
 		ptr->m_threadRunning = true;
 		std::cout << "[PSU-thread] worker thread running ..." << std::endl;
 
 		// send initial volatage and current commands, don't output power by default
 		ptr->setMaxVoltage(cfg.getChargerAbsorptionVoltage(), false);		// online mode
-		// ptr->setMaxCurrent(0.0f, false);		// " "
 
 		// send first request for status report
 		ptr->requestStatusData();
@@ -98,18 +105,36 @@ bool PsuController::setup(const char* interfaceName) {
 
 			// every second request status update
 			currentTime = steady_clock::now();
-			milliseconds timeElapsed = duration_cast<milliseconds>(currentTime - lastTime);
+			timeElapsed = duration_cast<milliseconds>(currentTime - lastStatusReqTime);
 			if(timeElapsed.count() > 1000) {
 				ptr->requestStatusData();
-				lastTime = steady_clock::now();
+				lastStatusReqTime = steady_clock::now();
 			}
 
 			// every 5 sec repeat last current command to ensure PSU stays in online mode
-			currentTime2 = steady_clock::now();
-			timeElapsed = duration_cast<milliseconds>(currentTime2 - lastTime2);
+			currentTime = steady_clock::now();
+			timeElapsed = duration_cast<milliseconds>(currentTime - lastCurrentCmdTime);
 			if(timeElapsed.count() > 5000) {
 				ptr->setMaxCurrent(ptr->m_lastCurrentCmd, false);
-				lastTime2 = steady_clock::now();
+				if(ptr->m_lastCurrentCmd == 0.0f) {
+					// tick the slot detect keep alive timer
+					ptr->m_secondsSinceLastCharge += static_cast<unsigned int>(timeElapsed.count() / 1000);
+					if(ptr->m_secondsSinceLastCharge >= cfg.getSlotDetectKeepAliveTime()) {
+						// turn off slot detect to enter stand by mode for power saving
+						#ifdef _TARGET_RASPI
+							if(cfg.isSlotDetectControlEnabled()) {
+								digitalWrite(SD_PIN, LOW);
+								std::cout << "[PSU-thread] Turn off slot detect --> standby mode" << std::endl;
+							}
+						#endif
+						ptr->m_secondsSinceLastCharge = 0;
+					}
+				} else {
+					// reset slot detect keep alive timer when last current command greater than zero
+					ptr->m_secondsSinceLastCharge = 0;
+				}
+
+				lastCurrentCmdTime = steady_clock::now();
 			}
 		}
 
@@ -120,10 +145,14 @@ bool PsuController::setup(const char* interfaceName) {
 }
 
 void PsuController::shutdown() {
-	std::cout << "try stop thread from running" << std::endl;
-	m_threadRunning = false;
+	// disable slot detect (on raspberry pi only)
+	#ifdef _TARGET_RASPI 
+		digitalWrite(SD_PIN, LOW);
+		std::cout << "[PSU] Slot detect disabled before exit" << std::endl;
+	#endif
 
 	// wait for worker thread
+	m_threadRunning = false;
 	m_workerTh.join();
 
 	// close the CAN socket
@@ -208,6 +237,16 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 	if(current != m_lastCurrentCmd) {
 		m_cmdAckFlag = false;
 		std::cout << "[PSU] sent new current command: " << current << "A" << std::endl;
+
+		// reenable slot detect after standby periods (on raspberry pi only)
+		if(m_lastCurrentCmd == 0.0f && current > 0.0f) {
+			#ifdef _TARGET_RASPI
+				if(cfg.isSlotDetectControlEnabled()) {
+					digitalWrite(SD_PIN, HIGH);
+					std::cout << "[PSU] Slot detect (re)enabled" << std::endl;
+				}
+			#endif
+		}
 	}
 
 	// save as last current command
@@ -359,7 +398,7 @@ void PsuController::processAckFrame(uint8_t *frame) {
 			
 		case 0x03:
 		{
-			currentAck = (float)value / MAX_CURRENT_MULTIPLIER;
+			currentAck = static_cast<float>(value) / MAX_CURRENT_MULTIPLIER;
 			if(m_cmdAckFlag == false && currentAck == m_lastCurrentCmd) {
 				printf("%s setting online current to %.02fA\n", error ? "Error" : "Success", currentAck);
 				m_cmdAckFlag = true;
@@ -369,7 +408,7 @@ void PsuController::processAckFrame(uint8_t *frame) {
 			
 		case 0x04:
 		{
-			printf("%s setting non-volatile (offline) current to %.02fA\n", error ? "Error" : "Success", (float)value / MAX_CURRENT_MULTIPLIER);
+			printf("%s setting non-volatile (offline) current to %.02fA\n", error ? "Error" : "Success", static_cast<float>(value) / MAX_CURRENT_MULTIPLIER);
 			break;
 		}
 			
@@ -378,4 +417,22 @@ void PsuController::processAckFrame(uint8_t *frame) {
 			printf("%s setting unknown parameter (0x%02X)\n", error ? "Error" : "Success", frame[1]);
 		}
 	}
+}
+
+// setup wiringpi for direct GPIO interfacing (on raspberry pi only)
+bool PsuController::initSlotDetect() {
+	#ifdef _TARGET_RASPI
+		wiringPiSetupGpio();
+		pinMode(SD_PIN, OUTPUT);
+
+		// turn off slot detect at application startup if feature is enabled
+		if(cfg.isSlotDetectControlEnabled()) {
+			digitalWrite(SD_PIN, LOW);
+		} else {
+			digitalWrite(SD_PIN, HIGH);		// when sd control disabled just turn on once 
+		}
+		std::cout << "[PSU] Slot detect initialized" << std::endl;
+	#endif
+
+	return true;
 }

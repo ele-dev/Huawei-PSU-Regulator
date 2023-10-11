@@ -13,3 +13,7 @@ regulator-idle-time: 1200
 scheduled-exit-enabled: false
 scheduled-exit-hour: 18
 scheduled-exit-minute: 30
+
+# slot detect (raspberry pi only)
+slotdetect-control-enabled: true
+slotdetect-keep-alive-time: 60
