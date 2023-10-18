@@ -9,7 +9,6 @@ extern ConfigFile cfg;
 
 // Constructor
 PsuController::PsuController() {
-	// std::cout << "[PSU] Controller created" << std::endl;
 	m_threadRunning = false;
 	m_lastCurrentCmd = 0.0f;
 	m_cmdAckFlag = false;
@@ -17,9 +16,7 @@ PsuController::PsuController() {
 }
 
 // Destructor
-PsuController::~PsuController() {
-	// std::cout << "[PSU] controller destructed" << std::endl;
-}
+PsuController::~PsuController() {}
 
 // public methods // 
 bool PsuController::setup(const char* interfaceName) {
@@ -201,6 +198,7 @@ bool PsuController::setMaxVoltage(float voltage, bool nonvolatile) {
 	dataFrameToSend.data[6] = (value & 0xFF00) >> 8;		// first the higher byte
 	dataFrameToSend.data[7] = value & 0xFF;				// then the lower one
 
+	// send the message frame
 	if(!sendCanFrame(dataFrameToSend)) {
 		std::cerr << "Failed to send voltage command!" << std::endl;
 		return false;
@@ -230,6 +228,7 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 	dataFrameToSend.data[6] = (value & 0xFF00) >> 8;		// first the higher bytes
 	dataFrameToSend.data[7] = value & 0xFF;					// then the lower one
 
+	// send the message frame
 	if(!sendCanFrame(dataFrameToSend)) {
 		std::cerr << "Failed to send current command!" << std::endl;
 		return false;
@@ -274,6 +273,7 @@ bool PsuController::requestStatusData() {
 	requestFrame.data[6] = 0;
 	requestFrame.data[7] = 0;
 
+	// send the message frame
 	if(!sendCanFrame(requestFrame)) {
 		std::cerr << "Failed to send status request command!" << std::endl;
 		return false;
