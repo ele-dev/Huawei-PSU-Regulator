@@ -93,7 +93,7 @@ public:
 
     bool setup(const char*);
     void shutdown();
-    void printParams();  
+    void printParams() const;
     bool setMaxVoltage(float, bool);
     bool setMaxCurrent(float, bool);
     bool requestStatusData();
@@ -106,7 +106,7 @@ public:
 private:
     // helper methods //
     bool sendCanFrame(struct can_frame);
-    void updateParams(uint8_t*);
+    void updateLocalParams(uint8_t*);
     void processAckFrame(uint8_t*);
 	bool initSlotDetect();
 };
