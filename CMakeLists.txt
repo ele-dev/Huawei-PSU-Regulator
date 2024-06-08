@@ -21,6 +21,7 @@ set(SOURCES
     src/UdpReceiver.cpp 
     src/Utils.cpp
     src/ConfigFile.cpp 
+    src/fsm.cpp
 )
 
 # Add any additional include directories
