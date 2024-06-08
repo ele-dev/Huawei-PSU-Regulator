@@ -22,6 +22,13 @@ bool scheduledClose() {
     return false;
 }
 
+// Callback function to handle the response data
+size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+    ((std::string *)userp)->append((char *)contents, size * nmemb);
+    return size * nmemb;
+}
+
 // function for sending HTTP GET requests with authentication
 std::string sendGetRequest(const std::string &url, const std::string &user, const std::string &password)
 {
@@ -49,11 +56,6 @@ std::string sendGetRequest(const std::string &url, const std::string &user, cons
         if (res != CURLE_OK)
         {
             std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-        }
-        else
-        {
-            // Print the response
-            // std::cout << "Response: " << readBuffer << std::endl;
         }
 
         // Cleanup
