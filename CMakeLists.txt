@@ -28,6 +28,9 @@ include_directories(
     include
 )
 
+# Find curl library
+find_package(CURL REQUIRED)
+
 # Add any external libraries (e.g., wiringPi)
 find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
 find_library(PTHREAD_LIB pthread)
@@ -39,4 +42,5 @@ add_executable(regulatorApp ${SOURCES})
 target_link_libraries(regulatorApp
     ${WIRINGPI_LIB}                             # (raspberry pi only)
     ${PTHREAD_LIB}
+    CURL::libcurl
 )
