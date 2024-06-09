@@ -4,7 +4,7 @@
 
 FSM::FSM()
 {
-    // Initialize the current state
+    // Initialize the current state to START
     currentState = State::START;
 
     // Define state transition table
