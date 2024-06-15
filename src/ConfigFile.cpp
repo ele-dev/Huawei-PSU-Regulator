@@ -43,7 +43,7 @@ bool ConfigFile::loadConfig() {
     std::string line = "";
     while(std::getline(fileIn, line)) {
         // skip empty lines and comment lines
-        if(line.length() < 1) 
+        if(line.length() < 3) 
             continue;
 
         if(line[0] == '#')
