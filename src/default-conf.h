@@ -53,3 +53,8 @@
 #define SD_CONTROL_ENABLED false
 #define SD_KEEP_ALIVE_TIME 60
 
+// define opendtu-on-battery interface credentials
+#define OPENDTU_HOST "opendtu-on-battery"
+#define OPENDTU_ADMIN_USER "admin"
+#define OPENDTU_ADMIN_PASS "password"
+#define OPENDTU_BATTERY_INVERTER_ID "bat-inv-id"

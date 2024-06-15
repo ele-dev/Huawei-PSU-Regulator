@@ -29,6 +29,11 @@ class ConfigFile
     bool m_slotDetectCtlEnabled;
     int m_slotDetectKeepAliveTime;
 
+    std::string m_openDtuHost;
+    std::string m_openDtuAdminUser;
+    std::string m_openDtuAdminPass;
+    std::string m_openDtuBatteryInvId;
+
 public:
     ConfigFile(std::string);
     ~ConfigFile();
@@ -50,6 +55,11 @@ public:
     int getScheduledExitMinute() const;
     bool isSlotDetectControlEnabled() const;
     int getSlotDetectKeepAliveTime() const;
+
+    std::string getOpenDtuHost() const;
+    std::string getOpenDtuAdminUser() const;
+    std::string getOpenDtuAdminPassword() const;
+    std::string getOpenDtuBatteryInverterId() const;
 
 private:
     void parseLine(std::string);

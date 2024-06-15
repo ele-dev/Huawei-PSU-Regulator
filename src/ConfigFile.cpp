@@ -23,6 +23,10 @@ ConfigFile::ConfigFile(std::string filename) {
     m_scheduledExitMinute = SCHEDULED_EXIT_MINUTE;
     m_slotDetectCtlEnabled = SD_CONTROL_ENABLED;
     m_slotDetectKeepAliveTime = SD_KEEP_ALIVE_TIME;
+    m_openDtuHost = OPENDTU_HOST;
+    m_openDtuAdminUser = OPENDTU_ADMIN_USER;
+    m_openDtuAdminPass = OPENDTU_ADMIN_PASS;
+    m_openDtuBatteryInvId = OPENDTU_BATTERY_INVERTER_ID;
 }
 
 ConfigFile::~ConfigFile() {}
@@ -70,6 +74,8 @@ void ConfigFile::printConfig() const {
     std::cout << "Scheduled exit time:        " << m_scheduledExitHour << ":" << m_scheduledExitMinute << std::endl;
     std::cout << "Slot detect control:        " << (m_slotDetectCtlEnabled ? "active" : "not active") << std::endl;
     std::cout << "Slot detect keep alive:     " << m_slotDetectKeepAliveTime << " sec" << std::endl;
+    std::cout << "OpenDTU Host:               " << "http://" << m_openDtuHost << std::endl;
+    // ...
     std::cout << std::endl;
 }
 
@@ -136,6 +142,14 @@ void ConfigFile::parseLine(std::string line) {
                 std::cerr << "slot detect keep alive time must be at least 10 seconds!" << std::endl;
                 m_slotDetectKeepAliveTime = SD_KEEP_ALIVE_TIME;
             }
+        } else if (key == "opendtu-hostname") {
+            m_openDtuHost = value;
+        } else if(key == "opendtu-admin-user") {
+            m_openDtuAdminUser = value;
+        } else if(key == "opendtu-admin-password") {
+            m_openDtuAdminPass = value;
+        } else if(key == "opendtu-battery-inverter-id") {
+            m_openDtuBatteryInvId = value;
         } else {
             std::cerr << "[Config] Invalid config variable named " << key << std::endl;
         }
@@ -207,4 +221,20 @@ bool ConfigFile::isSlotDetectControlEnabled() const {
 
 int ConfigFile::getSlotDetectKeepAliveTime() const {
     return m_slotDetectKeepAliveTime;
+}
+
+std::string ConfigFile::getOpenDtuHost() const {
+    return m_openDtuHost;
+}
+
+std::string ConfigFile::getOpenDtuAdminUser() const {
+    return m_openDtuAdminUser;
+}
+
+std::string ConfigFile::getOpenDtuAdminPassword() const {
+    return m_openDtuAdminPass;
+}
+
+std::string ConfigFile::getOpenDtuBatteryInverterId() const {
+    return m_openDtuBatteryInvId;
 }

@@ -22,88 +22,9 @@ bool scheduledClose() {
     return false;
 }
 
-// Callback function to handle the response data
-size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
+// Helper function to round float values on decimals
+float round(float var)
 {
-    ((std::string *)userp)->append((char *)contents, size * nmemb);
-    return size * nmemb;
+    float value = (int)(var * 100 + .5);
+    return static_cast<float>(value) / 100;
 }
-
-// function for sending HTTP GET requests with authentication
-std::string sendGetRequest(const std::string &url, const std::string &user, const std::string &password)
-{
-    CURL *curl;
-    CURLcode res;
-    std::string readBuffer = "";
-
-    // Initialize CURL
-    curl = curl_easy_init();
-    if (curl)
-    {
-        // Concatenate user and password for the credentials
-        std::string credentials = user + ":" + password;
-
-        // Set CURL options
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_USERPWD, credentials.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-
-        // Perform the request
-        res = curl_easy_perform(curl);
-
-        // Check for errors
-        if (res != CURLE_OK)
-        {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-        }
-
-        // Cleanup
-        curl_easy_cleanup(curl);
-
-        return readBuffer;
-    }
-    else
-    {
-        std::cerr << "Failed to initialize CURL" << std::endl;
-    }
-
-    return "";
-}
-
-// function for sending HTTP POST requests with authentication
-void sendPostRequest(const std::string &url, const std::string &user, const std::string &password, const std::string &jsonData)
-{
-    CURL *curl;
-    CURLcode res;
-
-    // Initialize CURL
-    curl = curl_easy_init();
-    if (curl)
-    {
-        // Concatenate user and password for the credentials
-        std::string credentials = user + ":" + password;
-
-        // Set CURL options
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_USERPWD, credentials.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonData.c_str());
-
-        // Perform the request
-        res = curl_easy_perform(curl);
-
-        // Check for errors
-        if (res != CURLE_OK)
-        {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-        }
-
-        // Cleanup
-        curl_easy_cleanup(curl);
-    }
-    else
-    {
-        std::cerr << "Failed to initialize CURL" << std::endl;
-    }
-}
-
