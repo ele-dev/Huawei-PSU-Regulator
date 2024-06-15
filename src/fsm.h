@@ -52,7 +52,7 @@ public:
     ~PVPowerPlantFSM();
 
     // process possible events which might trigger a state transition
-    void update(GridLoadState gridState, int acInvSupply);
+    void update(GridLoadState gridState, int acInvSupply, float batteryVoltage);
 
 private:
     State currentState;
@@ -63,10 +63,11 @@ private:
     OpenDtuInterface* m_dtu;
     PsuController* m_psu;
 
-    // static measurement variables
+    // measurement variables
     short m_gridLoad;
     short m_acChargePower;
     int m_acInvToGridPower;
+    float m_batteryVoltage;
 
     void handleEvent(Event event);
 

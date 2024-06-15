@@ -17,12 +17,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Add your source files here
 set(SOURCES
     src/main.cpp
-    src/PsuController.cpp
+    src/opendtu-interface.cpp
+    src/fsm.cpp
+    src/ConfigFile.cpp
+    src/PsuController.cpp 
     src/Queue.cpp 
     src/UdpReceiver.cpp 
-    src/Utils.cpp
-    src/ConfigFile.cpp 
-    src/fsm.cpp
+    src/Utils.cpp 
 )
 
 # Add any additional include directories
@@ -34,7 +35,7 @@ include_directories(
 find_package(CURL REQUIRED)
 
 # Add any external libraries (e.g., wiringPi)
-find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
+# find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
 find_library(PTHREAD_LIB pthread)
 
 # Create the executable
@@ -42,7 +43,7 @@ add_executable(energy-manager ${SOURCES})
 
 # Link the necessary libraries
 target_link_libraries(energy-manager
-    ${WIRINGPI_LIB}                             # (raspberry pi only)
+    # ${WIRINGPI_LIB}                             # (raspberry pi only)
     ${PTHREAD_LIB}
     CURL::libcurl
 )

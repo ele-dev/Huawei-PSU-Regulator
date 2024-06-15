@@ -11,6 +11,7 @@ PVPowerPlantFSM::PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu)
     m_gridLoad = 0;
     m_acChargePower = 0;
     m_acInvToGridPower = 0;
+    m_batteryVoltage = 49.0f;
 
     // store dtu & psu references internally
     m_dtu = dtu;
@@ -47,12 +48,13 @@ PVPowerPlantFSM::~PVPowerPlantFSM()
     m_dtu = nullptr;
 }
 
-void PVPowerPlantFSM::update(GridLoadState gridState, int acInvSupply)
+void PVPowerPlantFSM::update(GridLoadState gridState, int acInvSupply, float batteryVoltage)
 {
     // first update internal measurement variables
     m_gridLoad = gridState.tasmotaPowerCmd;
     m_acChargePower = gridState.psuAcInputPower;
     m_acInvToGridPower = acInvSupply;
+    m_batteryVoltage = m_batteryVoltage;
 
     for (auto &[event, condition] : eventConditions)
     {
@@ -172,7 +174,7 @@ void PVPowerPlantFSM::dischargeStateEntryAction()
 bool PVPowerPlantFSM::pvOverproduction()
 {
     // demand is satisfied and inverter is not supplying additional power from battery
-    if(m_gridLoad < 0 && m_acInvToGridPower == 0) {
+    if(m_gridLoad < 0 && m_acInvToGridPower == 0 && currentState != State::CHARGING) {
         return true;
     }
     return false;
@@ -181,7 +183,7 @@ bool PVPowerPlantFSM::pvOverproduction()
 bool PVPowerPlantFSM::highDemand()
 {
     // demand is high and AC charger is not charging 
-    if(m_gridLoad > 0 && m_acChargePower == 0 && m_acInvToGridPower == 0) {
+    if(m_gridLoad > 0 && m_acChargePower == 0 && m_acInvToGridPower == 0 && currentState != State::DISCHARGING) {
         return true;
     }
     return false;
@@ -195,9 +197,12 @@ bool PVPowerPlantFSM::batteryFull()
 bool PVPowerPlantFSM::batteryLow()
 {
     // demand is still high but inverter doesn't supply power (because battery is empty)
-    if(m_gridLoad > 20 && m_acInvToGridPower == 0) {
+    /*
+    if(m_gridLoad > 20 && m_acInvToGridPower == 0 && m_batteryVoltage < 48.3f) {
         return true;
     }
+    */
+
     return false;
 }
 

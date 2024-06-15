@@ -66,11 +66,15 @@ int main(int argc, char **argv)
         // required measurements from DTU
         dtu.fetchCurrentState();
 
-        std::cout << "Battery Inverter Output Power: " << dtu.getBatteryToGridPower() << std::endl;
-        std::cout << "Battery Voltage: " << dtu.getBatteryVoltage() << std::endl;
+        #ifdef _VERBOSE_OUTPUT
+            std::cout << "Grid Load:         " << latestGridLoadState.tasmotaPowerCmd << "W" << std::endl;
+            std::cout << "AC Charger Power:  " << latestGridLoadState.psuAcInputPower << "W" << std::endl;
+            std::cout << "AC Inverter Power: " << dtu.getBatteryToGridPower() << "W" << std::endl;
+            std::cout << "Battery Voltage:   " << dtu.getBatteryVoltage() << "V" << std::endl;
+        #endif
 
         // update the fsm
-        fsm.update(latestGridLoadState, dtu.getBatteryToGridPower());
+        fsm.update(latestGridLoadState, dtu.getBatteryToGridPower(), dtu.getBatteryVoltage());
     }
 
     // close up

@@ -13,6 +13,7 @@ OpenDtuInterface::OpenDtuInterface() : m_BatteryToGridPower(0.0f), m_BatteryVolt
     m_user = cfg.getOpenDtuAdminUser();
     m_password = cfg.getOpenDtuAdminPassword();
     m_batteryInverterId = cfg.getOpenDtuBatteryInverterId();
+    fetchInitialDPSState();
 }
 
 OpenDtuInterface::~OpenDtuInterface() {}
@@ -26,6 +27,7 @@ void OpenDtuInterface::enableDynamicPowerLimiter()
     // Send the POST request
     std::cout << "Request OpenDTU to enable DPL ..." << std::endl;
     sendPostRequest(url, jsonStr);
+    m_DynamicLimiterEnabled = true;
 }
 
 void OpenDtuInterface::disableDynamicPowerLimiter()
@@ -37,6 +39,7 @@ void OpenDtuInterface::disableDynamicPowerLimiter()
     // Send the POST request
     std::cout << "Request OpenDTU to disable DPL ..." << std::endl;
     sendPostRequest(url, jsonStr);
+    m_DynamicLimiterEnabled = false;
 }
 
 void OpenDtuInterface::fetchCurrentState() 
@@ -58,19 +61,6 @@ void OpenDtuInterface::fetchCurrentState()
     auto var1 = jsonData["total"]["Power"]["v"];
     m_BatteryToGridPower =  static_cast<float>(var1);
     // ...
-
-    // send second GET request to fetch DPL state (on or off)
-    /*
-    url = "http://" + m_address + "/api/powerlimiter/status";
-    response = sendGetRequest(url);
-
-    if(response == "failed") {
-        std::cerr << "Failed to fetch inverter status!" << std::endl;
-        return;
-    }
-    jsonData = json::parse(response);
-    m_DynamicLimiterEnabled = jsonData["enabled"];
-    */
 }
 
 // measurement getters //
@@ -84,6 +74,20 @@ float OpenDtuInterface::getBatteryVoltage() const {
 }
 
 // ...
+
+void OpenDtuInterface::fetchInitialDPSState()
+{
+    // send second GET request to fetch DPL state (on or off)
+    std::string url = "http://" + m_address + "/api/powerlimiter/status";
+    std::string response = sendGetRequest(url);
+
+    if(response == "failed") {
+        std::cerr << "Failed to fetch inverter status!" << std::endl;
+        return;
+    }
+    json jsonData = json::parse(response);
+    m_DynamicLimiterEnabled = jsonData["enabled"];
+}
 
 // private helper methods //
 

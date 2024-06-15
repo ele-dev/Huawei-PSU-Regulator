@@ -11,7 +11,7 @@
 // #define _VERBOSE_OUTPUT
 
 // compile flag for raspberry pi exclusive functionality
-#define _TARGET_RASPI
+// #define _TARGET_RASPI
 
 /*
     These are the default fallback values for all config variables.
