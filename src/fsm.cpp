@@ -36,7 +36,7 @@ PVPowerPlantFSM::PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu)
 
     // event conditions defined by a boolean expression along with a time hysteresis
     eventConditions = {
-        {Event::PV_OVERPRODUCTION, EventCondition(std::bind(&PVPowerPlantFSM::pvOverproduction, this), std::chrono::seconds(20))},
+        {Event::PV_OVERPRODUCTION, EventCondition(std::bind(&PVPowerPlantFSM::pvOverproduction, this), std::chrono::seconds(35))},
         {Event::HIGH_DEMAND, EventCondition(std::bind(&PVPowerPlantFSM::highDemand, this), std::chrono::seconds(15))},
         {Event::BATTERY_FULL, EventCondition(std::bind(&PVPowerPlantFSM::batteryFull, this), std::chrono::seconds(200))},
         {Event::BATTERY_LOW, EventCondition(std::bind(&PVPowerPlantFSM::batteryLow, this), std::chrono::seconds(200))}
