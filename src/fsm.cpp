@@ -174,7 +174,7 @@ void PVPowerPlantFSM::dischargeStateEntryAction()
 bool PVPowerPlantFSM::pvOverproduction()
 {
     // demand is satisfied and inverter is not supplying additional power from battery
-    if(m_gridLoad < 0 && m_acInvToGridPower == 0 && currentState != State::CHARGING) {
+    if(m_gridLoad < -30 && m_acInvToGridPower == 0 && currentState != State::CHARGING) {
         return true;
     }
     return false;
@@ -183,7 +183,7 @@ bool PVPowerPlantFSM::pvOverproduction()
 bool PVPowerPlantFSM::highDemand()
 {
     // demand is high and AC charger is not charging 
-    if(m_gridLoad > 0 && m_acChargePower == 0 && m_acInvToGridPower == 0 && currentState != State::DISCHARGING) {
+    if(m_gridLoad > 30 && m_acChargePower == 0 && m_acInvToGridPower == 0 && currentState != State::DISCHARGING) {
         return true;
     }
     return false;
@@ -198,7 +198,7 @@ bool PVPowerPlantFSM::batteryLow()
 {
     // demand is still high but inverter doesn't supply power (because battery is empty)
     /*
-    if(m_gridLoad > 20 && m_acInvToGridPower == 0 && m_batteryVoltage < 48.3f) {
+    if(m_gridLoad > 40 && m_acInvToGridPower == 0 && m_batteryVoltage < 48.3f) {
         return true;
     }
     */
