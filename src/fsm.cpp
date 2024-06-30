@@ -187,7 +187,7 @@ bool PVPowerPlantFSM::highDemand()
 {
     // demand is high and AC charger is not charging 
     short minDischargePower = cfg.getMinChargePower();
-    if(m_gridLoad > minDischargePower && m_acChargePower == 0 && m_acInvToGridPower == 0 && currentState != State::DISCHARGING) {
+    if(m_gridLoad > (2 * minDischargePower) && m_acChargePower == 0 && m_acInvToGridPower == 0 && currentState != State::DISCHARGING) {
         return true;
     }
     return false;
