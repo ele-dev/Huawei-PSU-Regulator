@@ -5,6 +5,8 @@
 
 #include "fsm.h"
 
+extern ConfigFile cfg;
+
 PVPowerPlantFSM::PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu)
 {
     // init static measurements
@@ -174,7 +176,8 @@ void PVPowerPlantFSM::dischargeStateEntryAction()
 bool PVPowerPlantFSM::pvOverproduction()
 {
     // demand is satisfied and inverter is not supplying additional power from battery
-    if(m_gridLoad < -30 && m_acInvToGridPower == 0 && currentState != State::CHARGING) {
+    short minChargerPower = cfg.getMinChargePower();
+    if(m_gridLoad < -minChargerPower && m_acInvToGridPower == 0 && currentState != State::CHARGING) {
         return true;
     }
     return false;
@@ -183,7 +186,8 @@ bool PVPowerPlantFSM::pvOverproduction()
 bool PVPowerPlantFSM::highDemand()
 {
     // demand is high and AC charger is not charging 
-    if(m_gridLoad > 30 && m_acChargePower == 0 && m_acInvToGridPower == 0 && currentState != State::DISCHARGING) {
+    short minDischargePower = cfg.getMinChargePower();
+    if(m_gridLoad > minDischargePower && m_acChargePower == 0 && m_acInvToGridPower == 0 && currentState != State::DISCHARGING) {
         return true;
     }
     return false;

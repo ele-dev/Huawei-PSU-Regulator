@@ -16,7 +16,7 @@ scheduled-exit-minute: 30
 
 # slot detect (raspberry pi only)
 slotdetect-control-enabled: true
-slotdetect-keep-alive-time: 60
+slotdetect-keep-alive-time: 120
 
 # opendtu interface
 opendtu-hostname: opendtu-on-battery
