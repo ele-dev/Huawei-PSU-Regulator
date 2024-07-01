@@ -28,3 +28,13 @@ float round(float var)
     float value = (int)(var * 100 + .5);
     return static_cast<float>(value) / 100;
 }
+
+// Helper function to quickly get string representation of a float value
+std::string float2String(float var, int decimalCnt) 
+{
+    std::stringstream ss;
+    ss.precision(decimalCnt);        // Set precision to 2 decimal places
+    ss << std::fixed << var;
+    std::string str = ss.str();
+    return str;
+}

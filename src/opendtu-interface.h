@@ -12,7 +12,7 @@
 #include <iostream>
 #include <string>
 
-#include "ConfigFile.h"
+#include "Utils.h"
 
 using json = nlohmann::json;
 
@@ -41,6 +41,8 @@ private:
     std::string m_user;
     std::string m_password;
     std::string m_batteryInverterId;
+    std::string m_startDischargeVoltage;
+    std::string m_stopDischargeVoltage;
 
     float m_BatteryToGridPower;
     float m_BatteryVoltage;

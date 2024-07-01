@@ -33,6 +33,8 @@ class ConfigFile
     std::string m_openDtuAdminUser;
     std::string m_openDtuAdminPass;
     std::string m_openDtuBatteryInvId;
+    float m_openDtuStartDischargeVoltage;
+    float m_openDtuStopDischargeVoltage;
 
 public:
     ConfigFile(std::string);
@@ -60,6 +62,8 @@ public:
     std::string getOpenDtuAdminUser() const;
     std::string getOpenDtuAdminPassword() const;
     std::string getOpenDtuBatteryInverterId() const;
+    float getOpenDtuStartDischargeVoltage() const;
+    float getOpenDtuStopDischargeVoltage() const;
 
 private:
     void parseLine(std::string);

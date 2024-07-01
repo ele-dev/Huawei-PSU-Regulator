@@ -23,3 +23,7 @@ opendtu-hostname: opendtu-on-battery
 opendtu-admin-user: admin
 opendtu-admin-password: password
 opendtu-battery-inverter-id: inv-id 
+opendtu-start-discharge-voltage: 49.0
+opendtu-stop-discharge-voltage: 48.3
+
+# fsm related parameters

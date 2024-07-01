@@ -13,6 +13,8 @@ OpenDtuInterface::OpenDtuInterface() : m_BatteryToGridPower(0.0f), m_BatteryVolt
     m_user = cfg.getOpenDtuAdminUser();
     m_password = cfg.getOpenDtuAdminPassword();
     m_batteryInverterId = cfg.getOpenDtuBatteryInverterId();
+    m_startDischargeVoltage = float2String(cfg.getOpenDtuStartDischargeVoltage(), 1);
+    m_stopDischargeVoltage = float2String(cfg.getOpenDtuStopDischargeVoltage(), 1);
     fetchInitialDPSState();
 }
 
@@ -22,7 +24,7 @@ void OpenDtuInterface::enableDynamicPowerLimiter()
 {
     // setup url and json payload to enable DPL via POST request
     std::string url = "http://" + m_address + "/api/powerlimiter/config";
-    std::string jsonStr = "data={\"enabled\":true,\"verbose_logging\":false,\"solar_passthrough_enabled\":false,\"is_inverter_behind_powermeter\":true,\"inverter_id\":0,\"inverter_channel_id\":0,\"target_power_consumption\":5,\"target_power_consumption_hysteresis\":5,\"lower_power_limit\":30,\"upper_power_limit\":800,\"battery_soc_start_threshold\":80,\"battery_soc_stop_threshold\":20,\"voltage_start_threshold\":49.0,\"voltage_stop_threshold\":48.3,\"voltage_load_correction_factor\":0.0015,\"inverter_restart_hour\":0}";
+    std::string jsonStr = "data={\"enabled\":true,\"verbose_logging\":false,\"solar_passthrough_enabled\":false,\"is_inverter_behind_powermeter\":true,\"inverter_id\":0,\"inverter_channel_id\":0,\"target_power_consumption\":5,\"target_power_consumption_hysteresis\":5,\"lower_power_limit\":30,\"upper_power_limit\":800,\"battery_soc_start_threshold\":80,\"battery_soc_stop_threshold\":20,\"voltage_start_threshold\":" + m_startDischargeVoltage + ",\"voltage_stop_threshold\":" + m_stopDischargeVoltage + ",\"voltage_load_correction_factor\":0.0015,\"inverter_restart_hour\":0}";
 
     // Send the POST request
     std::cout << "Request OpenDTU to enable DPL ..." << std::endl;

@@ -58,3 +58,7 @@
 #define OPENDTU_ADMIN_USER "admin"
 #define OPENDTU_ADMIN_PASS "password"
 #define OPENDTU_BATTERY_INVERTER_ID "bat-inv-id"
+#define OPENDTU_STOP_DISCHARGE_VOLTAGE 48.3f
+#define OPENDTU_START_DISCHARGE_VOLTAGE 49.0f
+
+// fsm related config parameters

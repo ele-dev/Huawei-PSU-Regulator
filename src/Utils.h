@@ -7,6 +7,7 @@
 #pragma once
 
 #include <ctime>
+#include <sstream>
 #include "ConfigFile.h"
 
 extern ConfigFile cfg;
@@ -14,6 +15,7 @@ extern ConfigFile cfg;
 // function prototypes
 bool scheduledClose();
 float round(float var);
+std::string float2String(float var, int decimalCnt);
 
 struct GridLoadState
 {
