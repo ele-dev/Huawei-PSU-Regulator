@@ -11,6 +11,8 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <string>
+#include <thread>
+#include <chrono>
 
 #include "Utils.h"
 
@@ -33,13 +35,17 @@ public:
     // ...
 
 private:
+    void setupCurlHandles();
     void fetchInitialDPLState();
     std::string sendGetRequest(const std::string &url) const;
     void sendPostRequest(const std::string &url, const std::string &jsonData) const;
 
+    CURL *m_curl_get_handle;
+    CURL *m_curl_post_handle;
+    // bool m_writeCallbackDone;
+
     std::string m_address;
-    std::string m_user;
-    std::string m_password;
+    std::string m_http_credentials;
     std::string m_batteryInverterId;
     std::string m_startDischargeVoltage;
     std::string m_stopDischargeVoltage;

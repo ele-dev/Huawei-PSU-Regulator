@@ -9,16 +9,26 @@ extern ConfigFile cfg;
 
 OpenDtuInterface::OpenDtuInterface() : m_BatteryToGridPower(0.0f), m_BatteryVoltage(40.0f) 
 {
+    // intit class internal parameters
     m_address = cfg.getOpenDtuHost();
-    m_user = cfg.getOpenDtuAdminUser();
-    m_password = cfg.getOpenDtuAdminPassword();
+    m_http_credentials = cfg.getOpenDtuAdminUser() + ":" + cfg.getOpenDtuAdminPassword();
     m_batteryInverterId = cfg.getOpenDtuBatteryInverterId();
     m_startDischargeVoltage = float2String(cfg.getOpenDtuStartDischargeVoltage(), 1);
     m_stopDischargeVoltage = float2String(cfg.getOpenDtuStopDischargeVoltage(), 1);
+    // m_writeCallbackDone = false;
+
+    // setup CURL
+    setupCurlHandles();
     fetchInitialDPLState();
 }
 
-OpenDtuInterface::~OpenDtuInterface() {}
+OpenDtuInterface::~OpenDtuInterface() 
+{
+    // close CURL handles
+    // m_writeCallbackDone = true;
+    curl_easy_cleanup(m_curl_get_handle);
+    curl_easy_cleanup(m_curl_post_handle);
+}
 
 void OpenDtuInterface::enableDynamicPowerLimiter() 
 {
@@ -93,6 +103,22 @@ void OpenDtuInterface::fetchInitialDPLState()
 
 // private helper methods //
 
+void OpenDtuInterface::setupCurlHandles()
+{
+    // init curl handle for GET requests
+    m_curl_get_handle = curl_easy_init();
+    if(m_curl_get_handle) {
+        curl_easy_setopt(m_curl_get_handle, CURLOPT_USERPWD, m_http_credentials.c_str());
+        curl_easy_setopt(m_curl_get_handle, CURLOPT_WRITEFUNCTION, WriteCallback);
+    }
+
+    // init curl handle for POST requests
+    m_curl_post_handle = curl_easy_init();
+    if(m_curl_post_handle) {
+        curl_easy_setopt(m_curl_post_handle, CURLOPT_USERPWD, m_http_credentials.c_str());
+    }
+}
+
 size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) 
 {
     ((std::string *)userp)->append((char *)contents, size * nmemb);
@@ -102,69 +128,47 @@ size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 // function for sending GET request with authentication
 std::string OpenDtuInterface::sendGetRequest(const std::string &url) const
 {
-    CURL *curl;
     CURLcode res;
     std::string readBuffer = "";
 
-    // Initialize CURL
-    curl = curl_easy_init();
-    if (curl) {
-        // Concatenate user and password for the credentials
-        std::string credentials = m_user + ":" + m_password;
+    curl_easy_setopt(m_curl_get_handle, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(m_curl_get_handle, CURLOPT_WRITEDATA, &readBuffer);
 
-        // Set CURL options
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_USERPWD, credentials.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    // m_writeCallbackDone = false;
 
-        // Perform the request
-        res = curl_easy_perform(curl);
+    // Perform the request
+    res = curl_easy_perform(m_curl_get_handle);
 
-        // Check for errors
-        if (res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-        }
-
-        // Cleanup
-        curl_easy_cleanup(curl);
-
-        return readBuffer;
-    } else {
-        std::cerr << "Failed to initialize CURL" << std::endl;
+    // Check for errors
+    if (res != CURLE_OK) {
+        std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+        return "failed";
     }
 
-    return "failed";
+    // wait for the callback func to write response to the read buffer
+    while(readBuffer == "") {      /* || !m_writeCallbackDone  || */
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(60));
+
+    return readBuffer;
 }
 
 // function for sending POST request with authentication
 void OpenDtuInterface::sendPostRequest(const std::string &url, const std::string &jsonData) const
 {
-    CURL *curl;
     CURLcode res;
 
-    // Initialize CURL
-    curl = curl_easy_init();
-    if (curl) {
-        // Concatenate user and password for the credentials
-        std::string credentials = m_user + ":" + m_password;
+    // Set CURL options
+    curl_easy_setopt(m_curl_post_handle, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(m_curl_post_handle, CURLOPT_POSTFIELDS, jsonData.c_str());
 
-        // Set CURL options
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_USERPWD, credentials.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonData.c_str());
+    // Perform the request
+    res = curl_easy_perform(m_curl_post_handle);
 
-        // Perform the request
-        res = curl_easy_perform(curl);
-
-        // Check for errors
-        if (res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-        }
-
-        // Cleanup
-        curl_easy_cleanup(curl);
-    } else {
-        std::cerr << "Failed to initialize CURL" << std::endl;
+    // Check for errors
+    if (res != CURLE_OK) {
+        std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
     }
 }
