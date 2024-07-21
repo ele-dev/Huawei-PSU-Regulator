@@ -110,12 +110,14 @@ void OpenDtuInterface::setupCurlHandles()
     if(m_curl_get_handle) {
         curl_easy_setopt(m_curl_get_handle, CURLOPT_USERPWD, m_http_credentials.c_str());
         curl_easy_setopt(m_curl_get_handle, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(m_curl_get_handle, CURLOPT_TIMEOUT, HTTP_TIMEOUT_SEC);
     }
 
     // init curl handle for POST requests
     m_curl_post_handle = curl_easy_init();
     if(m_curl_post_handle) {
         curl_easy_setopt(m_curl_post_handle, CURLOPT_USERPWD, m_http_credentials.c_str());
+        curl_easy_setopt(m_curl_get_handle, CURLOPT_TIMEOUT, HTTP_TIMEOUT_SEC);
     }
 }
 
@@ -140,6 +142,16 @@ std::string OpenDtuInterface::sendGetRequest(const std::string &url) const
     res = curl_easy_perform(m_curl_get_handle);
 
     // Check for errors
+    if(res = CURLE_COULDNT_CONNECT) {
+        std::cerr << "[OpenDTU] Could not connect via HTTP!" << std::endl;
+        return "failed";
+    }
+
+    if(res = CURLE_OPERATION_TIMEDOUT) {
+        std::cerr << "[OpenDTU] CURL GET request timed out!" << std::endl;
+        return "failed";
+    }
+
     if (res != CURLE_OK) {
         std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
         return "failed";
@@ -168,6 +180,16 @@ void OpenDtuInterface::sendPostRequest(const std::string &url, const std::string
     res = curl_easy_perform(m_curl_post_handle);
 
     // Check for errors
+    if(res = CURLE_COULDNT_CONNECT) {
+        std::cerr << "[OpenDTU] Could not connect via HTTP!" << std::endl;
+        return;
+    }
+
+    if(res = CURLE_OPERATION_TIMEDOUT) {
+        std::cerr << "[OpenDTU] CURL POST request timed out!" << std::endl;
+        return;
+    }
+
     if (res != CURLE_OK) {
         std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
     }
