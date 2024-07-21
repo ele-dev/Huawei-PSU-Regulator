@@ -262,8 +262,25 @@ float PVPowerPlantFSM::calculateCurrentBasedOnPower(float power, float batteryVo
         eff = 0.96f;
     }
 
+    // ensure battery voltage value is in valid range to prevent misscalculations
+    if(batteryVoltage < 47.0f) {
+        std::cout << "[Regulator] Invalid battery voltage measurement detected!" << std::endl;
+        batteryVoltage = 47.0f;
+    }
+    if(batteryVoltage > 53.5f) {
+        std::cout << "[Regulator] Invalid battery voltage measurement detected!" << std::endl;
+        batteryVoltage = 53.5f;
+    }
+
     // calculate and round the current 
     float result = round(0.9876f * eff * power / batteryVoltage);
+
+    // also ensure the calculated current aligns with the configured maximum power limits
+    float maxAllowedChargingCurrent = round(cfg.getMaxChargePower() / 47.0f);
+    if(result > maxAllowedChargingCurrent) {
+        std::cout << "[Regulator] Allowed maximum charging current (" << maxAllowedChargingCurrent << "A) reached!" << std::endl;
+        result = maxAllowedChargingCurrent;
+    }
 
     return result;
 }
