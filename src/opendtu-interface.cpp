@@ -15,7 +15,7 @@ OpenDtuInterface::OpenDtuInterface() : m_BatteryToGridPower(0.0f), m_BatteryVolt
     m_batteryInverterId = cfg.getOpenDtuBatteryInverterId();
     m_startDischargeVoltage = float2String(cfg.getOpenDtuStartDischargeVoltage(), 1);
     m_stopDischargeVoltage = float2String(cfg.getOpenDtuStopDischargeVoltage(), 1);
-    fetchInitialDPSState();
+    fetchInitialDPLState();
 }
 
 OpenDtuInterface::~OpenDtuInterface() {}
@@ -77,7 +77,7 @@ float OpenDtuInterface::getBatteryVoltage() const {
 
 // ...
 
-void OpenDtuInterface::fetchInitialDPSState()
+void OpenDtuInterface::fetchInitialDPLState()
 {
     // send second GET request to fetch DPL state (on or off)
     std::string url = "http://" + m_address + "/api/powerlimiter/status";

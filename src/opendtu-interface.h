@@ -33,7 +33,7 @@ public:
     // ...
 
 private:
-    void fetchInitialDPSState();
+    void fetchInitialDPLState();
     std::string sendGetRequest(const std::string &url) const;
     void sendPostRequest(const std::string &url, const std::string &jsonData) const;
 
