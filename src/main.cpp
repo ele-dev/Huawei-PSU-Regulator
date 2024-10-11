@@ -1,7 +1,6 @@
 #include "opendtu-interface.h"
 #include "fsm.h"
 
-// #include "UdpReceiver.h"
 #include "ModbusClient.h"
 #include "PsuController.h"
 #include "ConfigFile.h"
@@ -87,7 +86,6 @@ int main(int argc, char **argv)
 
 void terminateSignalHandler(int code) {
     // shutdown sockets, threads and queue
-    // receiver.closeUp();
     powermeter.closeup();
     psu.shutdown();
     cmdQueue.clear();

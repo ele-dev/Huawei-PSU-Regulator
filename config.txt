@@ -1,15 +1,23 @@
 # This is the config file
 
-can-interface: can0
+# powermeter interface
 udp-listener-port: 2000
+
+# huawei charger settings
+can-interface: can0
 absorption-voltage: 52.5
 min-charge-power: 30
 max-charge-power: 1500
-target-grid-power: 0
-regulator-error-threshold: 7
-regulator-idle-time: 1200
 
-# advanced features
+# battery inverter interface
+opendtu-hostname: opendtu-on-battery
+opendtu-admin-user: admin
+opendtu-admin-password: password
+opendtu-battery-inverter-id: inv-id 
+opendtu-start-discharge-voltage: 48.8
+opendtu-stop-discharge-voltage: 48.3
+
+# scheduled closeup
 scheduled-exit-enabled: false
 scheduled-exit-hour: 18
 scheduled-exit-minute: 30
@@ -18,12 +26,8 @@ scheduled-exit-minute: 30
 slotdetect-control-enabled: true
 slotdetect-keep-alive-time: 55
 
-# opendtu interface
-opendtu-hostname: opendtu-on-battery
-opendtu-admin-user: admin
-opendtu-admin-password: password
-opendtu-battery-inverter-id: inv-id 
-opendtu-start-discharge-voltage: 48.8
-opendtu-stop-discharge-voltage: 48.3
+# regulator parameters
+target-grid-power: 0
+regulator-error-threshold: 7
+regulator-idle-time: 1200
 
-# fsm related parameters
