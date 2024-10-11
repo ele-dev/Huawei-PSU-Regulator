@@ -1,7 +1,8 @@
 #include "opendtu-interface.h"
 #include "fsm.h"
 
-#include "UdpReceiver.h"
+// #include "UdpReceiver.h"
+#include "ModbusClient.h"
 #include "PsuController.h"
 #include "ConfigFile.h"
 #include "Utils.h"
@@ -9,7 +10,7 @@
 // global instances
 PsuController psu;
 Queue<GridLoadState> cmdQueue;
-UdpReceiver receiver;
+ModbusClient powermeter;
 ConfigFile cfg("config.txt");
 
 // function prototypes
@@ -44,7 +45,8 @@ int main(int argc, char **argv)
     }
 
     // attempt to start udp receiver to listen for power change messages
-    status = receiver.setup(cfg.getUdpPort());
+    // status = receiver.setup(cfg.getUdpPort());
+    status = powermeter.setup("Shelly-IP", SHELLY_MODBUS_PORT);
     if(!status) {
         terminateSignalHandler(EXIT_FAILURE);
     }
@@ -85,7 +87,8 @@ int main(int argc, char **argv)
 
 void terminateSignalHandler(int code) {
     // shutdown sockets, threads and queue
-    receiver.closeUp();
+    // receiver.closeUp();
+    powermeter.closeup();
     psu.shutdown();
     cmdQueue.clear();
     exit(code);
