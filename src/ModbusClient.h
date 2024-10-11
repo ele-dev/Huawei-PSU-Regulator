@@ -19,7 +19,6 @@ class ModbusClient
 {
     private:
         modbus_t *connectionHandle;       // connection handle
-        bool ready;
 
         std::thread m_listenerThread;
         std::atomic<bool> m_threadRunning;
@@ -34,6 +33,5 @@ class ModbusClient
         float readInputRegisterAsFloat32(int startRegAddr) const;
 
     private:
-        bool isReady() const;
         int readInputRegisterAsInt16(int startRegAddr) const;
 };

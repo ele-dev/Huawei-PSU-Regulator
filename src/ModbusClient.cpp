@@ -5,9 +5,7 @@
 extern Queue<GridLoadState> cmdQueue;
 extern PsuController psu;
 
-ModbusClient::ModbusClient() {
-    this->ready = false;
-}
+ModbusClient::ModbusClient() {}
 
 ModbusClient::~ModbusClient() {}
 
@@ -29,6 +27,7 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
     // spawn separate thread to fetch power meter readings in background
     this->m_listenerThread = std::thread([] (ModbusClient* ptr) {
         ptr->m_threadRunning = true;
+        std::cout << "[MODBUS-thread] listener thread running ..." << std::endl;
 
         // power meter polling loop
         while(ptr->m_threadRunning)
@@ -41,11 +40,11 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
 
             // filter out invalid unrealistic values
             if(powerVal < -30000 || powerVal > 20000) {
-                std::cerr << "[MODBUS-Thread] Received invalid power state value: " << powerVal << " (ignore)" << std::endl;
+                std::cerr << "[MODBUS-thread] Received invalid power state value: " << powerVal << " (ignore)" << std::endl;
                 continue;
             }
             else {
-                std::cout << "[MODBUS-Thread] Fetched Powermeter: " << powerVal << "W" << std::endl;
+                std::cout << "[MODBUS-thread] Fetched Powermeter: " << powerVal << "W" << std::endl;
             }
 
             // compose a power state object out of the new command and the current AC input power of the PSU
@@ -59,6 +58,8 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
             // idle a bit to prevent buisy waiting
             sleep_for(seconds(1));
         }
+
+        std::cout << "[MODBUS-thread] closeup --> finish thread now" << std::endl;
     }, 
     this);
 
@@ -77,18 +78,9 @@ void ModbusClient::closeup() {
     modbus_free(this->connectionHandle);
 }
 
-bool ModbusClient::isReady() const {
-    return this->ready;
-}
-
 float ModbusClient::readInputRegisterAsFloat32(int startRegAddr) const {
     uint16_t tab_reg[2];     // To store 2 input registers (each register is 16 bits)
     int statusCode = 0;
-
-    if(!this->ready) {
-        std::cerr << "MODBUS not ready!" << std::endl;
-        return -1.0f;
-    }
 
     // attempt to read the 2 registers 
     statusCode = modbus_read_input_registers(this->connectionHandle, startRegAddr, 2, tab_reg);
@@ -108,9 +100,5 @@ float ModbusClient::readInputRegisterAsFloat32(int startRegAddr) const {
 }
 
 int ModbusClient::readInputRegisterAsInt16(int startRegAddr) const {
-    if(!this->ready) {
-        std::cerr << "MODBUS not ready!" << std::endl;
-        return -1;
-    }
     return 0;
 }
