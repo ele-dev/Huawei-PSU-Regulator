@@ -1,6 +1,5 @@
 /*
     File: ConfigFile.cpp
-
     written by Elias Geiger
 */
 
@@ -29,6 +28,9 @@ ConfigFile::ConfigFile(std::string filename) {
     m_openDtuBatteryInvId = OPENDTU_BATTERY_INVERTER_ID;
     m_openDtuStartDischargeVoltage = OPENDTU_START_DISCHARGE_VOLTAGE;
     m_openDtuStopDischargeVoltage = OPENDTU_STOP_DISCHARGE_VOLTAGE;
+    m_powerMeterModbusIp = PM_MODBUS_IP;
+    m_powerMeterModbusPort = PM_MODBUS_PORT;
+    m_powerMeterModbusPollingPeriod = PM_MODBUS_POLLING_PERIOD_MS;
 }
 
 ConfigFile::~ConfigFile() {}
@@ -64,22 +66,25 @@ bool ConfigFile::loadConfig() {
 // method for printing all config variables to the console
 void ConfigFile::printConfig() const {
     std::cout << "\nConfig Variables:" << std::endl;
-    std::cout << "UDP Listener Port:          " << m_udpListenerPort << std::endl;
-    std::cout << "CAN interface:              " << m_canInterfaceName << std::endl;
-    std::cout << "Target grid power:          " << m_targetGridPower << " W" << std::endl;
-    std::cout << "Min charge power:           " << m_minChargePower << " W" << std::endl;
-    std::cout << "Max charge power:           " << m_maxChargePower << " W" << std::endl;
-    std::cout << "Regulator error threshold:  " << m_regulatorErrorThreshold << " W" << std::endl;
-    std::cout << "Regulator idle time:        " << m_regulatorIdleTime << " msec" << std::endl;
-    std::cout << "Charger absorption voltage: " << m_chargerAbsorptionVoltage << " V" << std::endl;
-    std::cout << "Scheduled exit enabled:     " << (m_scheduledExitEnabled ? "yes" : "no") << std::endl;
-    std::cout << "Scheduled exit time:        " << m_scheduledExitHour << ":" << m_scheduledExitMinute << std::endl;
-    std::cout << "Slot detect control:        " << (m_slotDetectCtlEnabled ? "active" : "not active") << std::endl;
-    std::cout << "Slot detect keep alive:     " << m_slotDetectKeepAliveTime << " sec" << std::endl;
-    std::cout << "OpenDTU Host:               " << "http://" << m_openDtuHost << std::endl;
-    std::cout << "OpenDTU Inverter ID:        " << m_openDtuBatteryInvId << std::endl;
-    std::cout << "OpenDTU Start Discharge:    " << m_openDtuStartDischargeVoltage << " V" << std::endl;
-    std::cout << "OpenDTU Stop Discharge:     " << m_openDtuStopDischargeVoltage << " V" << std::endl;
+    std::cout << "UDP Listener Port:           " << m_udpListenerPort << std::endl;
+    std::cout << "CAN interface:               " << m_canInterfaceName << std::endl;
+    std::cout << "Target grid power:           " << m_targetGridPower << " W" << std::endl;
+    std::cout << "Min charge power:            " << m_minChargePower << " W" << std::endl;
+    std::cout << "Max charge power:            " << m_maxChargePower << " W" << std::endl;
+    std::cout << "Regulator error threshold:   " << m_regulatorErrorThreshold << " W" << std::endl;
+    std::cout << "Regulator idle time:         " << m_regulatorIdleTime << " msec" << std::endl;
+    std::cout << "Charger absorption voltage:  " << m_chargerAbsorptionVoltage << " V" << std::endl;
+    std::cout << "Scheduled exit enabled:      " << (m_scheduledExitEnabled ? "yes" : "no") << std::endl;
+    std::cout << "Scheduled exit time:         " << m_scheduledExitHour << ":" << m_scheduledExitMinute << std::endl;
+    std::cout << "Slot detect control:         " << (m_slotDetectCtlEnabled ? "active" : "not active") << std::endl;
+    std::cout << "Slot detect keep alive:      " << m_slotDetectKeepAliveTime << " sec" << std::endl;
+    std::cout << "OpenDTU Host:                " << "http://" << m_openDtuHost << std::endl;
+    std::cout << "OpenDTU Inverter ID:         " << m_openDtuBatteryInvId << std::endl;
+    std::cout << "OpenDTU Start Discharge:     " << m_openDtuStartDischargeVoltage << " V" << std::endl;
+    std::cout << "OpenDTU Stop Discharge:      " << m_openDtuStopDischargeVoltage << " V" << std::endl;
+    std::cout << "Modbus powermeter IP:        " << m_powerMeterModbusIp << std::endl;
+    std::cout << "Modbus powermeter port:      " << m_powerMeterModbusPort << std::endl;
+    std::cout << "Modbus powermeter poll rate: " << m_powerMeterModbusPollingPeriod << " ms" << std::endl;
     // ...
     std::cout << std::endl;
 }
@@ -159,7 +164,13 @@ void ConfigFile::parseLine(std::string line) {
             m_openDtuStartDischargeVoltage = stof(value);
         } else if(key == "opendtu-stop-discharge-voltage") {
             m_openDtuStopDischargeVoltage = stof(value);
-        }else {
+        } else if(key == "modbus-powermeter-ip") {
+            m_powerMeterModbusIp = value;
+        } else if(key == "modbus-powermeter-port") {
+            m_powerMeterModbusPort = stoi(value);
+        } else if(key == "modbus-powermeter-polling-rate") {
+            m_powerMeterModbusPollingPeriod = stoi(value);
+        } else {
             std::cerr << "[Config] Invalid config variable named " << key << std::endl;
         }
     } catch(...) {
@@ -254,4 +265,16 @@ float ConfigFile::getOpenDtuStartDischargeVoltage() const {
 
 float ConfigFile::getOpenDtuStopDischargeVoltage() const {
     return m_openDtuStopDischargeVoltage;
+}
+
+std::string ConfigFile::getPowerMeterModbusIp() const {
+    return m_powerMeterModbusIp;
+}
+
+short ConfigFile::getPowerMeterModbusPort() const {
+    return m_powerMeterModbusPort;
+}
+
+int ConfigFile::getPowerMeterModbusPollingPeriod() const {
+    return m_powerMeterModbusPollingPeriod;
 }

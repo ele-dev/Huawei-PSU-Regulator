@@ -1,6 +1,5 @@
 /*
     File: ConfigFile.h
-
     written by Elias Geiger
 */
 
@@ -36,6 +35,10 @@ class ConfigFile
     float m_openDtuStartDischargeVoltage;
     float m_openDtuStopDischargeVoltage;
 
+    std::string m_powerMeterModbusIp;
+    short m_powerMeterModbusPort;
+    int m_powerMeterModbusPollingPeriod;
+
 public:
     ConfigFile(std::string);
     ~ConfigFile();
@@ -64,6 +67,10 @@ public:
     std::string getOpenDtuBatteryInverterId() const;
     float getOpenDtuStartDischargeVoltage() const;
     float getOpenDtuStopDischargeVoltage() const;
+
+    std::string getPowerMeterModbusIp() const;
+    short getPowerMeterModbusPort() const;
+    int getPowerMeterModbusPollingPeriod() const;
 
 private:
     void parseLine(std::string);

@@ -1,3 +1,9 @@
+/*
+    File: main.cpp
+    This is file contains the top level context of application logic
+    written by Elias Geiger
+*/
+
 #include "opendtu-interface.h"
 #include "fsm.h"
 

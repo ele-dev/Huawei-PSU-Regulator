@@ -1,10 +1,11 @@
 /*
     File: Utils.cpp
-
     written by Elias Geiger
 */
 
 #include "Utils.h"
+
+extern ConfigFile cfg;
 
 // helper function for detecting a scheduled exit event to close the application
 bool scheduledClose() {

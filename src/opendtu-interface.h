@@ -1,7 +1,7 @@
 /*
     File: opendtu-interface.h
     This Module provides a interface to opentu HTTP API using curl requests
-
+    
     written by Elias Geiger
 */
 

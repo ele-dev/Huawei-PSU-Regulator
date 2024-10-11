@@ -1,3 +1,11 @@
+/*
+    File: ModbusClient.h
+    This module provides functionality for integration of Modbus/TCP enabled 
+    3 phase powermeters such as the Shelly Pro 3em
+
+    written by Elias Geiger
+*/
+
 #pragma once
 
 #include <modbus/modbus.h>

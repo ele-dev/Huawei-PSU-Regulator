@@ -1,7 +1,10 @@
 # This is the config file
 
-# powermeter interface
+# tasmota powermeter interface
 udp-listener-port: 2000
+
+# modbus powermeter interface 
+
 
 # huawei charger settings
 can-interface: can0
