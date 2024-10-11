@@ -23,20 +23,28 @@ set(SOURCES
     src/PsuController.cpp 
     src/Queue.cpp 
     src/UdpReceiver.cpp 
+    src/ModbusClient.cpp
     src/Utils.cpp 
 )
 
+# Find curl and modbus library
+find_package(CURL REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
+
 # Add any additional include directories
 include_directories(
-    include
+    ${LIBMODBUS_INCLUDE_DIRS}
 )
 
-# Find curl library
-find_package(CURL REQUIRED)
+link_directories(
+    ${LIBMODBUS_LIBRARY_DIRS}
+)
 
 # Add any external libraries (e.g., wiringPi)
 # find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
 find_library(PTHREAD_LIB pthread)
+find_library(MODBUS_LIB libmodbus)
 
 # Create the executable
 add_executable(energy-manager ${SOURCES})
@@ -45,5 +53,6 @@ add_executable(energy-manager ${SOURCES})
 target_link_libraries(energy-manager
     # ${WIRINGPI_LIB}                             # (raspberry pi only)
     ${PTHREAD_LIB}
+    ${LIBMODBUS_LIBRARIES}
     CURL::libcurl
 )
