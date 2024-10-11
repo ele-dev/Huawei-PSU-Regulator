@@ -5,7 +5,7 @@
 
 #include "UdpReceiver.h"
 
-extern Queue<PowerState> cmdQueue;
+extern Queue<GridLoadState> cmdQueue;
 extern PsuController psu;
 
 // constructor and destructor
@@ -65,7 +65,7 @@ bool UdpReceiver::setup(short udpPort) {
 
         auto lastMsgTime = steady_clock::now();
 		auto currentTime = steady_clock::now();
-        const PowerState fakePowerState = {30000, 0};
+        const GridLoadState fakePowerState = {30000, 0};
 
         // read and queue incoming messages until external stop signal
         char recvBuffer[MSGLEN];
@@ -96,7 +96,7 @@ bool UdpReceiver::setup(short udpPort) {
             }
             
             // compose a power state object out of the new command and the current AC input power of the PSU
-            PowerState pState;
+            GridLoadState pState;
             pState.tasmotaPowerCmd = powerVal;
             pState.psuAcInputPower = static_cast<short>(psu.getCurrentInputPower());
 

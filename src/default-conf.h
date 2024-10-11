@@ -11,7 +11,7 @@
 // #define _VERBOSE_OUTPUT
 
 // compile flag for raspberry pi exclusive functionality
-#define _TARGET_RASPI
+// #define _TARGET_RASPI
 
 /*
     These are the default fallback values for all config variables.
@@ -53,3 +53,12 @@
 #define SD_CONTROL_ENABLED false
 #define SD_KEEP_ALIVE_TIME 60
 
+// define opendtu-on-battery interface credentials
+#define OPENDTU_HOST "opendtu-on-battery"
+#define OPENDTU_ADMIN_USER "admin"
+#define OPENDTU_ADMIN_PASS "password"
+#define OPENDTU_BATTERY_INVERTER_ID "bat-inv-id"
+#define OPENDTU_STOP_DISCHARGE_VOLTAGE 48.3f
+#define OPENDTU_START_DISCHARGE_VOLTAGE 49.0f
+
+// fsm related config parameters
