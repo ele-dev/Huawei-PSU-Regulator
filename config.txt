@@ -34,5 +34,5 @@ slotdetect-keep-alive-time: 55
 # regulator parameters
 target-grid-power: 0
 regulator-error-threshold: 7
-regulator-idle-time: 1200
+regulator-idle-time: 1640
 
