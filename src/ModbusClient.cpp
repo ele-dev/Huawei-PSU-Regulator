@@ -41,8 +41,11 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
 
             // filter out invalid unrealistic values
             if(powerVal < -30000 || powerVal > 20000) {
-                std::cerr << "[UDP-thread] Received invalid power state value: " << powerVal << " (ignore)" << std::endl;
+                std::cerr << "[MODBUS-Thread] Received invalid power state value: " << powerVal << " (ignore)" << std::endl;
                 continue;
+            }
+            else {
+                std::cout << "[MODBUS-Thread] Fetched Powermeter: " << powerVal << "W" << std::endl;
             }
 
             // compose a power state object out of the new command and the current AC input power of the PSU
