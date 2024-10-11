@@ -18,6 +18,7 @@
 #include "Utils.h"
 
 #define SHELLY_POWER_REG_ADDR 1014
+#define INVALID_POWERMETER_READ -9999.9f
 
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
@@ -37,8 +38,8 @@ class ModbusClient
         bool setup(const char* serverIp, const int serverPort);
         void closeup();
 
-        float readInputRegisterAsFloat32(int startRegAddr) const;
+        
 
     private:
-        int readInputRegisterAsInt16(int startRegAddr) const;
+        float readInputRegisterAsFloat32(int startRegAddr) const;
 };

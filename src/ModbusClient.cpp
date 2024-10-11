@@ -19,13 +19,13 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
     // Initialize the Modbus TCP connection
     this->connectionHandle = modbus_new_tcp(serverIp, serverPort);
     if (this->connectionHandle == NULL) {
-        std::cerr << "Unable to allocate libmodbus context" << std::endl;
+        std::cerr << "[MODBUS] Error: Unable to allocate libmodbus context" << std::endl;
         return false;
     }
 
     // Connect to the Modbus server
     if (modbus_connect(this->connectionHandle) == -1) {
-        std::cerr << "Connection failed: " << modbus_strerror(errno) << std::endl;
+        std::cerr << "[MODBUS] Error: " << modbus_strerror(errno) << std::endl;
         modbus_free(this->connectionHandle);
         return false;
     }
@@ -38,20 +38,24 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
         // power meter polling loop
         while(ptr->m_threadRunning)
         {
-            // read modbus register from shelly 
+            // read modbus register from modbus powermeter (e.g. shelly pro 3em)
             float registerValue = ptr->readInputRegisterAsFloat32(SHELLY_POWER_REG_ADDR);
+            if(registerValue == INVALID_POWERMETER_READ) {
+                continue;
+            }
 
             // round value and convert to short integer
             short powerVal = static_cast<short>(round(registerValue));
 
-            // filter out invalid unrealistic values
+            // filter out invalid unrealistic values with a nofication sent along
             if(powerVal < -30000 || powerVal > 20000) {
                 std::cerr << "[MODBUS-thread] Received invalid power state value: " << powerVal << " (ignore)" << std::endl;
                 continue;
             }
-            else {
+            
+            #ifdef _VERBOSE_OUTPUT
                 std::cout << "[MODBUS-thread] Fetched Powermeter: " << powerVal << "W" << std::endl;
-            }
+            #endif
 
             // compose a power state object out of the new command and the current AC input power of the PSU
             GridLoadState pState;
@@ -92,7 +96,7 @@ float ModbusClient::readInputRegisterAsFloat32(int startRegAddr) const {
     statusCode = modbus_read_input_registers(this->connectionHandle, startRegAddr, 2, tab_reg);
     if(statusCode == -1) {
         std::cerr << "Failed to read: " << modbus_strerror(errno) << std::endl;
-        return -1.0f;
+        return INVALID_POWERMETER_READ;
     }
 
     // combine into one 32-bit register (big-endian byte order)
@@ -103,8 +107,4 @@ float ModbusClient::readInputRegisterAsFloat32(int startRegAddr) const {
     std::memcpy(&value, &raw_value, sizeof(value));
 
     return value;
-}
-
-int ModbusClient::readInputRegisterAsInt16(int startRegAddr) const {
-    return 0;
 }
