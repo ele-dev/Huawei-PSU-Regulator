@@ -22,7 +22,6 @@ set(SOURCES
     src/ConfigFile.cpp
     src/PsuController.cpp 
     src/Queue.cpp 
-    src/UdpReceiver.cpp 
     src/ModbusClient.cpp
     src/Utils.cpp 
 )
