@@ -9,6 +9,7 @@
 
 extern Queue<GridLoadState> cmdQueue;
 extern PsuController psu;
+extern ConfigFile cfg;
 
 ModbusClient::ModbusClient() {}
 
@@ -61,7 +62,7 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
             cmdQueue.push(pState);
 
             // idle a bit to prevent buisy waiting
-            sleep_for(seconds(1));
+            sleep_for(milliseconds(cfg.getPowerMeterModbusPollingPeriod()));
         }
 
         std::cout << "[MODBUS-thread] closeup --> finish thread now" << std::endl;

@@ -68,7 +68,7 @@ public:
     float getOpenDtuStartDischargeVoltage() const;
     float getOpenDtuStopDischargeVoltage() const;
 
-    std::string getPowerMeterModbusIp() const;
+    const char* getPowerMeterModbusIp() const;
     short getPowerMeterModbusPort() const;
     int getPowerMeterModbusPollingPeriod() const;
 

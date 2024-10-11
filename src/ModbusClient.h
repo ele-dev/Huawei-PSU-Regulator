@@ -18,9 +18,8 @@
 #include "Utils.h"
 
 #define SHELLY_POWER_REG_ADDR 1014
-#define SHELLY_MODBUS_PORT 502
 
-using std::chrono::seconds;
+using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
 class ModbusClient 

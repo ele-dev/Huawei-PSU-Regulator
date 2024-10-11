@@ -4,7 +4,9 @@
 udp-listener-port: 2000
 
 # modbus powermeter interface 
-
+modbus-powermeter-ip: 192.168.1.123
+modbus-powermeter-port: 502
+modbus-powermeter-polling-rate: 1250
 
 # huawei charger settings
 can-interface: can0

@@ -267,8 +267,8 @@ float ConfigFile::getOpenDtuStopDischargeVoltage() const {
     return m_openDtuStopDischargeVoltage;
 }
 
-std::string ConfigFile::getPowerMeterModbusIp() const {
-    return m_powerMeterModbusIp;
+const char* ConfigFile::getPowerMeterModbusIp() const {
+    return m_powerMeterModbusIp.c_str();
 }
 
 short ConfigFile::getPowerMeterModbusPort() const {

@@ -50,8 +50,7 @@ int main(int argc, char **argv)
     }
 
     // attempt to start udp receiver to listen for power change messages
-    // status = receiver.setup(cfg.getUdpPort());
-    status = powermeter.setup("Shelly-IP", SHELLY_MODBUS_PORT);
+    status = powermeter.setup(cfg.getPowerMeterModbusIp(), cfg.getPowerMeterModbusPort());
     if(!status) {
         terminateSignalHandler(EXIT_FAILURE);
     }
