@@ -35,7 +35,7 @@
 #define REGULATOR_IDLE_TIME 1200
 
 // bounds for min and max DC ouput power of the charger PSU
-#define MAX_CHARGE_POWER 700
+#define MAX_CHARGE_POWER 1500
 #define MIN_CHARGE_POWER 50
 
 // absorbtion voltage to use for charging
