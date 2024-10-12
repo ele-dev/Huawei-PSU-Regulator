@@ -36,7 +36,7 @@ using std::chrono::milliseconds;
 using std::chrono::duration_cast;
 
 // GPIO pin that controls the slot detect relay (active high)
-#define SD_PIN 17
+#define SD_PIN 27
 
 // config variables ---------------------
 #define MAX_CURRENT_MULTIPLIER		20

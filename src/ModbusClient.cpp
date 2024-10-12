@@ -53,9 +53,7 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
                 continue;
             }
             
-            #ifdef _VERBOSE_OUTPUT
-                std::cout << "[MODBUS-thread] Fetched Powermeter: " << powerVal << "W" << std::endl;
-            #endif
+            std::cout << "[MODBUS-thread] Fetched Powermeter: " << powerVal << "W" << std::endl;
 
             // compose a power state object out of the new command and the current AC input power of the PSU
             GridLoadState pState;
