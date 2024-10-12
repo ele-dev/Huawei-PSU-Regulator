@@ -121,8 +121,10 @@ bool PsuController::setup(const char* interfaceName) {
 						// turn off slot detect to enter stand by mode for power saving
 						#ifdef _TARGET_RASPI
 							if(cfg.isSlotDetectControlEnabled()) {
-								digitalWrite(SD_PIN, LOW);
-								std::cout << "[PSU-thread] Turn off slot detect --> standby mode" << std::endl;
+								if(digitalRead(SD_PIN) == HIGH) {
+									digitalWrite(SD_PIN, LOW);
+									std::cout << "[PSU-thread] Turn off slot detect --> standby mode" << std::endl;
+								}
 							}
 						#endif
 						ptr->m_secondsSinceLastCharge = 0;
@@ -145,8 +147,10 @@ bool PsuController::setup(const char* interfaceName) {
 void PsuController::shutdown() {
 	// disable slot detect (on raspberry pi only)
 	#ifdef _TARGET_RASPI 
-		digitalWrite(SD_PIN, LOW);
-		std::cout << "[PSU] Slot detect disabled before exit" << std::endl;
+		if(digitalRead(SD_PIN) == HIGH) {
+			digitalWrite(SD_PIN, LOW);
+			std::cout << "[PSU] Slot detect disabled before exit" << std::endl;
+		}
 	#endif
 
 	// wait for worker thread
@@ -243,8 +247,10 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 		if(m_lastCurrentCmd == 0.0f && current > 0.0f) {
 			#ifdef _TARGET_RASPI
 				if(cfg.isSlotDetectControlEnabled()) {
-					digitalWrite(SD_PIN, HIGH);
-					std::cout << "[PSU] Slot detect (re)enabled" << std::endl;
+					if(digitalRead(SD_PIN) == LOW) {
+						digitalWrite(SD_PIN, HIGH);
+						std::cout << "[PSU] Slot detect (re)enabled" << std::endl;
+					}	
 				}
 			#endif
 		}
