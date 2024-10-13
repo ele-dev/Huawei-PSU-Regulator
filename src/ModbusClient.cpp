@@ -11,11 +11,13 @@ extern Queue<GridLoadState> cmdQueue;
 extern PsuController psu;
 extern ConfigFile cfg;
 
-ModbusClient::ModbusClient() : m_pollingPeriodTime(cfg.getPowerMeterModbusPollingPeriod()), m_threadRunning(false) {}
+ModbusClient::ModbusClient() : m_threadRunning(false) {}
 
 ModbusClient::~ModbusClient() {}
 
 bool ModbusClient::setup(const char* serverIp, const int serverPort) {
+    this->m_pollingPeriodTime = cfg.getPowerMeterModbusPollingPeriod();
+
     // Initialize the Modbus TCP connection
     this->connectionHandle = modbus_new_tcp(serverIp, serverPort);
     if (this->connectionHandle == NULL) {
@@ -55,7 +57,7 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
                 continue;
             }
             
-            std::cout << "[MODBUS-thread] Fetched Powermeter: " << powerVal << "W" << std::endl;
+            // std::cout << "[MODBUS-thread] Fetched Powermeter: " << powerVal << "W" << std::endl;
 
             // compose a power state object out of the new command and the current AC input power of the PSU
             GridLoadState pState;
