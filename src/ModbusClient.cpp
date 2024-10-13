@@ -11,7 +11,7 @@ extern Queue<GridLoadState> cmdQueue;
 extern PsuController psu;
 extern ConfigFile cfg;
 
-ModbusClient::ModbusClient() {}
+ModbusClient::ModbusClient() : m_pollingPeriodTime(cfg.getPowerMeterModbusPollingPeriod()), m_threadRunning(false) {}
 
 ModbusClient::~ModbusClient() {}
 
@@ -42,7 +42,7 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
             float registerValue = ptr->readInputRegisterAsFloat32(SHELLY_POWER_REG_ADDR);
             if(registerValue == INVALID_POWERMETER_READ) {
                 // wait a few seconds before trying again 
-                sleep_for(seconds(4));
+                sleep_for(milliseconds(4000));
                 continue;
             }
 
@@ -66,7 +66,7 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
             cmdQueue.push(pState);
 
             // idle a bit to prevent buisy waiting
-            sleep_for(milliseconds(cfg.getPowerMeterModbusPollingPeriod()));
+            sleep_for(milliseconds(ptr->m_pollingPeriodTime));
         }
 
         std::cout << "[MODBUS-thread] closeup --> finish thread now" << std::endl;
@@ -86,6 +86,16 @@ void ModbusClient::closeup() {
     // Close the connection and free the Modbus context
     modbus_close(this->connectionHandle);
     modbus_free(this->connectionHandle);
+}
+
+void ModbusClient::increaseModbusPollingRate() {
+    this->m_pollingPeriodTime = cfg.getPowerMeterModbusPollingPeriod();
+    std::cout << "[MODBUS] Increased powermeter polling rate for regulation" << std::endl;
+}
+
+void ModbusClient::decreaseModbusPollingRate() {
+    this->m_pollingPeriodTime = 4000;
+    std::cout << "[MODBUS] Decreased powermeter polling rate" << std::endl;
 }
 
 float ModbusClient::readInputRegisterAsFloat32(int startRegAddr) const {

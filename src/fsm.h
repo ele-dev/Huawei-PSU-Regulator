@@ -16,6 +16,7 @@
 #include "opendtu-interface.h"
 #include "PsuController.h"
 #include "Utils.h"
+#include "ModbusClient.h"
 
 using std::this_thread::sleep_for;
 using std::chrono::seconds;
@@ -48,7 +49,7 @@ struct EventCondition {
 
 class PVPowerPlantFSM {
 public:
-    PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu);
+    PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu, ModbusClient* powermeter);
     ~PVPowerPlantFSM();
 
     // process possible events which might trigger a state transition
@@ -62,6 +63,7 @@ private:
 
     OpenDtuInterface* m_dtu;
     PsuController* m_psu;
+    ModbusClient* m_modbusPM;
 
     // measurement variables
     short m_gridLoad;

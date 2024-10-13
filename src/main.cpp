@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     }
 
     // at last create the FSM and pass references to PSU & DTU
-    PVPowerPlantFSM fsm(&dtu, &psu);
+    PVPowerPlantFSM fsm(&dtu, &psu, &powermeter);
 
     // main application loop in the main thread
     while (!scheduledClose())

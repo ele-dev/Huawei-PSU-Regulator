@@ -20,7 +20,6 @@
 #define SHELLY_POWER_REG_ADDR 1014
 #define INVALID_POWERMETER_READ -9999.9f
 
-using std::chrono::seconds;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -31,6 +30,7 @@ class ModbusClient
 
         std::thread m_listenerThread;
         std::atomic<bool> m_threadRunning;
+        std::atomic<int> m_pollingPeriodTime;
 
     public:
         ModbusClient();
@@ -39,7 +39,9 @@ class ModbusClient
         bool setup(const char* serverIp, const int serverPort);
         void closeup();
 
-        
+        // setter functions for in-/decreasing modbus polling rate from outside
+        void increaseModbusPollingRate();
+        void decreaseModbusPollingRate();
 
     private:
         float readInputRegisterAsFloat32(int startRegAddr) const;

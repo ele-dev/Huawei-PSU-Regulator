@@ -7,7 +7,7 @@
 
 extern ConfigFile cfg;
 
-PVPowerPlantFSM::PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu)
+PVPowerPlantFSM::PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu, ModbusClient* powermeter)
 {
     // init static measurements
     m_gridLoad = 0;
@@ -15,9 +15,10 @@ PVPowerPlantFSM::PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu)
     m_acInvToGridPower = 0;
     m_batteryVoltage = 49.0f;
 
-    // store dtu & psu references internally
+    // store dtu, psu and powermeter references internally
     m_dtu = dtu;
     m_psu = psu;
+    m_modbusPM = powermeter;
 
     // initial state is IDLE
     currentState = State::IDLE;
@@ -160,16 +161,17 @@ void PVPowerPlantFSM::chargeStateEntryAction()
     std::cout << "[FSM] --> Entering Charging state ..." << std::endl;
     m_dtu->disableDynamicPowerLimiter();
 
-    // activate the psu regulator for adaptive charging
-    // ...
+    // increase the polling rate for modbus powermeters (to regulate PSU properly)
+    m_modbusPM->increaseModbusPollingRate();
 }
 
 void PVPowerPlantFSM::dischargeStateEntryAction() 
 {
     std::cout << "[FSM] --> Entering Discharging state ..." << std::endl;
-    // pause the psu regulator before starting the DPL
-
     m_dtu->enableDynamicPowerLimiter();
+
+    // decrease the polling rate for modbus powermeters (only sproradic updates suffice)
+    m_modbusPM->decreaseModbusPollingRate();
 }
 
 // event conditions //
