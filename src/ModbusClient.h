@@ -17,7 +17,7 @@
 #include "PsuController.h"
 #include "Utils.h"
 
-#define SHELLY_POWER_REG_ADDR 1014
+#define SHELLY_POWER_REG_ADDR 1014          // 31014 (dec) according to shelly docs
 #define INVALID_POWERMETER_READ -9999.9f
 
 using std::chrono::milliseconds;

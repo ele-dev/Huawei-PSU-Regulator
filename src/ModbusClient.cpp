@@ -18,19 +18,22 @@ ModbusClient::~ModbusClient() {}
 bool ModbusClient::setup(const char* serverIp, const int serverPort) {
     this->m_pollingPeriodTime = cfg.getPowerMeterModbusPollingPeriod();
 
-    // Initialize the Modbus TCP connection
+    // initialize the modbus TCP connection
     this->connectionHandle = modbus_new_tcp(serverIp, serverPort);
     if (this->connectionHandle == NULL) {
         std::cerr << "[MODBUS] Error: Unable to allocate libmodbus context" << std::endl;
         return false;
     }
 
-    // Connect to the Modbus server
+    // connect to the modbus power meter
     if (modbus_connect(this->connectionHandle) == -1) {
         std::cerr << "[MODBUS] Error: " << modbus_strerror(errno) << std::endl;
         modbus_free(this->connectionHandle);
         return false;
     }
+
+    // flush before first start of communication
+    modbus_flush(this->connectionHandle);
 
     // spawn separate thread to fetch power meter readings in background
     this->m_listenerThread = std::thread([] (ModbusClient* ptr) {
@@ -43,7 +46,8 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
             // read modbus register from modbus powermeter (e.g. shelly pro 3em)
             float registerValue = ptr->readInputRegisterAsFloat32(SHELLY_POWER_REG_ADDR);
             if(registerValue == INVALID_POWERMETER_READ) {
-                // wait a few seconds before trying again 
+                // flush and wait a few seconds before trying again 
+                modbus_flush(ptr->connectionHandle);
                 sleep_for(milliseconds(4000));
                 continue;
             }
@@ -111,12 +115,7 @@ float ModbusClient::readInputRegisterAsFloat32(int startRegAddr) const {
         return INVALID_POWERMETER_READ;
     }
 
-    // combine into one 32-bit register (big-endian byte order)
-    uint32_t raw_value = (tab_reg[0] << 16) | tab_reg[1];
-
-    // parse content into float variable according to IEEE-754 standard
-    float value;
-    std::memcpy(&value, &raw_value, sizeof(value));
+    float value = modbus_get_float_abcd(tab_reg);
 
     return value;
 }
