@@ -41,6 +41,8 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
             // read modbus register from modbus powermeter (e.g. shelly pro 3em)
             float registerValue = ptr->readInputRegisterAsFloat32(SHELLY_POWER_REG_ADDR);
             if(registerValue == INVALID_POWERMETER_READ) {
+                // wait a few seconds before trying again 
+                sleep_for(seconds(4));
                 continue;
             }
 

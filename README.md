@@ -18,7 +18,7 @@ The system is centered around existing subsystems (Tasmota Energy Meter, OpenDTU
 4. Execute the regulator binary file on the terminal 
 
 ## Build & Run on linux system
-1. Install system dependencies ``` sudo apt install libmodbus-dev libcurl4-openssl-dev nlohmann-json3-dev cmake g++ build-essential ```
+1. Install system dependencies ``` sudo apt install pkg-config libmodbus-dev libcurl4-openssl-dev nlohmann-json3-dev cmake g++ build-essential ```
 2. Clone the repository on the linux system that is connected to the power supply via CAN
 3. Creat a ``` build ```folder and run ``` cmake .. ``` and ``` make ``` from there to build an application binary
 4. Customize your runtime settings in config.txt file

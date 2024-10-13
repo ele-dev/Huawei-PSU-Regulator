@@ -20,6 +20,7 @@
 #define SHELLY_POWER_REG_ADDR 1014
 #define INVALID_POWERMETER_READ -9999.9f
 
+using std::chrono::seconds;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
