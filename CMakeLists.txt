@@ -11,9 +11,6 @@ enable_language(CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Set the Raspberry Pi toolchain file (only for cross compiling)
-# set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/RaspberryPi.cmake)
-
 # Add your source files here
 set(SOURCES
     src/main.cpp
@@ -27,33 +24,24 @@ set(SOURCES
 )
 
 # Find curl and modbus library
-find_package(glog 0.7.1 REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(glog REQUIRED)
 find_package(CURL REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
-
-# Add any additional include directories
-include_directories(
-    ${LIBMODBUS_INCLUDE_DIRS}
-)
-
-link_directories(
-    ${LIBMODBUS_LIBRARY_DIRS}
-)
+find_package(libmodbus REQUIRED)
 
 # Add any external libraries (e.g., wiringPi)
 # find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
 find_library(PTHREAD_LIB pthread)
-find_library(MODBUS_LIB libmodbus)
 
 # Create the executable
-add_executable(energy-manager ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Link the necessary libraries
-target_link_libraries(energy-manager
+target_link_libraries(${PROJECT_NAME}
     # ${WIRINGPI_LIB}                             # (raspberry pi only)
     ${PTHREAD_LIB}
-    ${LIBMODBUS_LIBRARIES}
+    libmodbus::libmodbus
     CURL::libcurl
     glog::glog
+    nlohmann_json::nlohmann_json
 )
