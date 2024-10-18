@@ -9,6 +9,9 @@
 #pragma once
 
 #include <modbus/modbus.h>
+#include <sys/socket.h>
+#include <netinet/tcp.h>
+#include <netinet/in.h>
 #include <cstdint>
 #include <cstring>
 #include <thread>
@@ -26,7 +29,7 @@ using std::this_thread::sleep_for;
 class ModbusClient 
 {
     private:
-        modbus_t *connectionHandle;       // connection handle
+        modbus_t *m_connectionHandle;       // connection handle
 
         std::thread m_listenerThread;
         std::atomic<bool> m_threadRunning;
@@ -44,5 +47,6 @@ class ModbusClient
         void decreaseModbusPollingRate();
 
     private:
+        bool enableTcpKeepalive(int sock);
         float readInputRegisterAsFloat32(int startRegAddr) const;
 };
