@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # Setup the project
 project(energy-manager)
@@ -27,6 +27,7 @@ set(SOURCES
 )
 
 # Find curl and modbus library
+find_package(glog 0.7.1 REQUIRED)
 find_package(CURL REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
@@ -54,4 +55,5 @@ target_link_libraries(energy-manager
     ${PTHREAD_LIB}
     ${LIBMODBUS_LIBRARIES}
     CURL::libcurl
+    glog::glog
 )

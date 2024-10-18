@@ -7,6 +7,8 @@
 
 #include <ctime>
 #include <sstream>
+#include <glog/logging.h>
+
 #include "ConfigFile.h"
 
 // function prototypes
