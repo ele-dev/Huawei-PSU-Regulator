@@ -30,7 +30,7 @@ find_package(CURL REQUIRED)
 find_package(libmodbus REQUIRED)
 
 # Add any external libraries (e.g., wiringPi)
-# find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
+find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
 find_library(PTHREAD_LIB pthread)
 
 # Create the executable
@@ -38,7 +38,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Link the necessary libraries
 target_link_libraries(${PROJECT_NAME}
-    # ${WIRINGPI_LIB}                             # (raspberry pi only)
+    ${WIRINGPI_LIB}                             # (raspberry pi only)
     ${PTHREAD_LIB}
     libmodbus::libmodbus
     CURL::libcurl

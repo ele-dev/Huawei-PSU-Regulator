@@ -3,6 +3,7 @@ nlohmann_json/3.11.3
 libcurl/8.10.1
 libmodbus/3.1.10
 glog/0.7.1
+wiringpi/3.10
 
 [generators]
 CMakeDeps
