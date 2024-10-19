@@ -11,9 +11,6 @@ enable_language(CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Set the Raspberry Pi toolchain file (only for cross compiling)
-# set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/RaspberryPi.cmake)
-
 # Add your source files here
 set(SOURCES
     src/main.cpp
@@ -27,7 +24,6 @@ set(SOURCES
 )
 
 # Find curl and modbus library
-find_package(glog 0.7.1 REQUIRED)
 find_package(CURL REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
@@ -55,5 +51,4 @@ target_link_libraries(energy-manager
     ${PTHREAD_LIB}
     ${LIBMODBUS_LIBRARIES}
     CURL::libcurl
-    glog::glog
 )

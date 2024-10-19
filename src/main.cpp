@@ -30,10 +30,6 @@ int main(int argc, char **argv)
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
 
-    // init glog 
-    google::InitGoogleLogging(argv[0]);
-    LOG(INFO) << "Hello from GLog library";
-
     // read config variables from config file
     bool status = cfg.loadConfig();
     if(!status) {
