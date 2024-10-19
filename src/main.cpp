@@ -24,9 +24,6 @@ void terminateSignalHandler(int);
 
 int main(int argc, char **argv)
 {
-    // welcome message from logger
-    logger.logMessage(LogLevel::INFO, "Hello from new smart logger module :)");
-
     // create signal handler for clean Ctrl+C close up
     struct sigaction sigIntHandler;
     sigIntHandler.sa_handler = terminateSignalHandler;

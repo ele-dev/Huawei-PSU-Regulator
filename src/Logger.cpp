@@ -7,6 +7,7 @@
 
 Logger::Logger(const char* logfilename) {
     this->m_logFile.open(logfilename, std::ios_base::app);
+    this->logMessage(LogLevel::INFO, "-------------------- APPLICATION LAUNCH --------------------");
 }
 
 Logger::~Logger() {
