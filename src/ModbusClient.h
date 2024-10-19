@@ -22,6 +22,7 @@
 
 #define SHELLY_POWER_REG_ADDR 1014          // 31014 (dec) according to shelly docs
 #define INVALID_POWERMETER_READ -9999.9f
+// #define USE_TCP_KEEPALIVE_OPTIONS
 
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
