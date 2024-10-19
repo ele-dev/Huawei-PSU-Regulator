@@ -5,10 +5,12 @@
 
 #include "Logger.h"
 
-Logger::Logger() {
+Logger::Logger(const char* logfilename) {
+    this->m_logFile.open(logfilename, std::ios_base::app);
 }
 
 Logger::~Logger() {
+    this->m_logFile.close();
 }
 
 void Logger::logMessage(LogLevel level, const std::string& message) {
@@ -38,11 +40,19 @@ void Logger::logMessage(LogLevel level, const std::string& message) {
             break;
     }
 
-    // Format and print the log message
-    std::cout << timestamp << " - " << logLevelStr << " - " << message << std::endl;
+    // format and print the log message
+    std::ostringstream log_entry;
+    log_entry << timestamp << " - " << logLevelStr << " - " << message;
+
+    // print to the console
+    std::cout << log_entry.str() << std::endl;
 
     // write the same message to the logfile if needed
-    // ...
+    if(this->m_logFile.is_open()) {
+        this->m_logFile << log_entry.str() << std::endl;
+    } else {
+        std::cerr << "Error: Log file could not be opened!" << std::endl;
+    }
 }
 
 std::string Logger::getCurrentTimestamp() const {

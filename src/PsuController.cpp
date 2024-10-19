@@ -254,7 +254,7 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 	if(current != m_lastCurrentCmd) {
 		m_cmdAckFlag = false;
 		// std::cout << "[PSU] sent new current command: " << current << "A" << std::endl;
-		logger.logMessage(LogLevel::DEBUG, "[PSU] Sent new current command" + std::to_string(current) + "A");
+		logger.logMessage(LogLevel::DEBUG, "[PSU] Sent new current command " + std::to_string(round(current)) + "A");
 
 		// reenable slot detect after standby periods (on raspberry pi only)
 		if(m_lastCurrentCmd == 0.0f && current > 0.0f) {
@@ -429,19 +429,25 @@ void PsuController::processAckFrame(uint8_t *frame) {
 	switch (frame[1]) {
 		case 0x00:
 		{
-			printf("%s setting online voltage to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
+			std::string msg = std::string(error ? "Error" : "Success") + " setting online voltage to " + std::to_string(round(value / 1024.0f)) + "V";
+			logger.logMessage(LogLevel::DEBUG, msg);
+			// printf("%s setting online voltage to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
 			break;
 		}
 			
 		case 0x01:
 		{
-			printf("%s setting non-volatile (offline) voltage to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
+			std::string msg = std::string(error ? "Error" : "Success") + " setting non-volatile (offline) voltage to " + std::to_string(round(value / 1024.0f)) + "V";
+			logger.logMessage(LogLevel::DEBUG, msg);
+			// printf("%s setting non-volatile (offline) voltage to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
 			break;
 		}
 			
 		case 0x02:
 		{
-			printf("%s setting overvoltage protection to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
+			std::string msg = std::string(error ? "Error" : "Success") + " setting overvoltage protection to " + std::to_string(round(value / 1024.0f)) + "V";
+			logger.logMessage(LogLevel::DEBUG, msg);
+			// printf("%s setting overvoltage protection to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
 			break;
 		}
 			
@@ -449,7 +455,9 @@ void PsuController::processAckFrame(uint8_t *frame) {
 		{
 			float currentAck = static_cast<float>(value) / MAX_CURRENT_MULTIPLIER;
 			if(m_cmdAckFlag == false && currentAck == m_lastCurrentCmd) {
-				printf("%s setting online current to %.02fA\n", error ? "Error" : "Success", currentAck);
+				std::string msg = std::string(error ? "Error" : "Success") + " setting online current to " + std::to_string(round(currentAck)) + "A";
+				logger.logMessage(LogLevel::DEBUG, msg);
+				// printf("%s setting online current to %.02fA\n", error ? "Error" : "Success", currentAck);
 				m_cmdAckFlag = true;
 			}
 			break;
@@ -457,13 +465,17 @@ void PsuController::processAckFrame(uint8_t *frame) {
 			
 		case 0x04:
 		{
-			printf("%s setting non-volatile (offline) current to %.02fA\n", error ? "Error" : "Success", static_cast<float>(value) / MAX_CURRENT_MULTIPLIER);
+			float currentAck = static_cast<float>(value) / MAX_CURRENT_MULTIPLIER;
+			std::string msg = std::string(error ? "Error" : "Success") + " setting non-volatile (offline) current to " + std::to_string(round(currentAck)) + "A";
+			logger.logMessage(LogLevel::DEBUG, msg);
+			// printf("%s setting non-volatile (offline) current to %.02fA\n", error ? "Error" : "Success", static_cast<float>(value) / MAX_CURRENT_MULTIPLIER);
 			break;
 		}
 			
 		default:
 		{
-			printf("%s setting unknown parameter (0x%02X)\n", error ? "Error" : "Success", frame[1]);
+			logger.logMessage(LogLevel::WARNING, "Setting unknown paramater");
+			// printf("%s setting unknown parameter (0x%02X)\n", error ? "Error" : "Success", frame[1]);
 		}
 	}
 }

@@ -16,7 +16,7 @@
 PsuController psu;
 Queue<GridLoadState> cmdQueue;
 ModbusClient powermeter;
-Logger logger;
+Logger logger("energy-meter.log");
 ConfigFile cfg("config.txt");
 
 // function prototypes

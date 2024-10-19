@@ -24,7 +24,7 @@ class Logger
     std::mutex m_logMutex;
 
 public:
-    Logger();
+    Logger(const char* logfilename);
     ~Logger();
 
     void logMessage(LogLevel level, const std::string& message);
