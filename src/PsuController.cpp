@@ -6,6 +6,7 @@
 #include "PsuController.h"
 
 extern ConfigFile cfg;
+extern Logger logger;
 
 // Constructor
 PsuController::PsuController() {
@@ -22,14 +23,16 @@ PsuController::~PsuController() {}
 bool PsuController::setup(const char* interfaceName) {
 	// initialize the slot detect control
 	if(!initSlotDetect()) {
-		std::cerr << "Failed to init slot detect control!" << std::endl;
+		// std::cerr << "Failed to init slot detect control!" << std::endl;
+		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to init slot detect control");
 		return false;
 	}
 
 	// create can socket
 	m_canSocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 	if(m_canSocket < 0) {
-		std::cerr << "Failed to create CAN socket!" << std::endl;
+		// std::cerr << "Failed to create CAN socket!" << std::endl;
+		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to create CAN socket");
 		return false;
 	}
 
@@ -44,7 +47,8 @@ bool PsuController::setup(const char* interfaceName) {
 
 	// bind address to interface
 	if(bind(m_canSocket, (struct sockaddr*)&m_addr, sizeof(m_addr)) < 0) {
-		std::cerr << "Failed to bind CAN Socket!" << std::endl;
+		// std::cerr << "Failed to bind CAN Socket!" << std::endl;
+		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to bind CAN socket");
 		return false;
 	}
 
@@ -57,7 +61,8 @@ bool PsuController::setup(const char* interfaceName) {
 		auto lastStatusRequestTime = currentTime, lastCurrentCommandRepeatTime = currentTime;
 		milliseconds timeElapsed;
 		
-		std::cout << "[PSU-thread] worker thread running ..." << std::endl;
+		// std::cout << "[PSU-thread] worker thread running ..." << std::endl;
+		logger.logMessage(LogLevel::DEBUG, "[PSU-thread] worker thread running ...");
 
 		// send initial volatage and current commands, don't output power by default
 		ptr->setMaxVoltage(cfg.getChargerAbsorptionVoltage(), false);		// online mode
@@ -72,7 +77,8 @@ bool PsuController::setup(const char* interfaceName) {
 			// read in message from CAN bus
 			int nbytes = read(ptr->m_canSocket, &receivedCanFrame, sizeof(can_frame));
 			if (nbytes < 0) {
-				std::cerr << "[PSU-thread] Problem with reading can message frame" << std::endl;
+				// std::cerr << "[PSU-thread] Problem with reading can message frame" << std::endl;
+				logger.logMessage(LogLevel::WARNING, "[PSU-thread] Issue when reading can message frame");
 				continue;
 			}
 
@@ -123,7 +129,8 @@ bool PsuController::setup(const char* interfaceName) {
 							if(cfg.isSlotDetectControlEnabled()) {
 								if(digitalRead(SD_PIN) == HIGH) {
 									digitalWrite(SD_PIN, LOW);
-									std::cout << "[PSU-thread] Turn off slot detect --> standby mode" << std::endl;
+									// std::cout << "[PSU-thread] Turn off slot detect --> standby mode" << std::endl;
+									logger.logMessage(LogLevel::INFO, "[PSU-thread] Turn off slot detect --> standby mode");
 								}
 							}
 						#endif
@@ -138,7 +145,8 @@ bool PsuController::setup(const char* interfaceName) {
 			}
 		}
 
-		std::cout << "[PSU-thread] closeup --> finish thread now" << std::endl;
+		// std::cout << "[PSU-thread] closeup --> finish thread now" << std::endl;
+		logger.logMessage(LogLevel::DEBUG, "[PSU-thread] closup --> finish tread now");
 	}, this);
 
 	return true;
@@ -149,7 +157,8 @@ void PsuController::shutdown() {
 	#ifdef _TARGET_RASPI 
 		if(digitalRead(SD_PIN) == HIGH) {
 			digitalWrite(SD_PIN, LOW);
-			std::cout << "[PSU] Slot detect disabled before exit" << std::endl;
+			// std::cout << "[PSU] Slot detect disabled before exit" << std::endl;
+			logger.logMessage(LogLevel::INFO, "[PSU] Slot detect disabled before exit");
 		}
 	#endif
 
@@ -159,7 +168,8 @@ void PsuController::shutdown() {
 
 	// close the CAN socket
 	if(close(m_canSocket) < 0) {
-		std::cerr << "Could not close CAN socket! Not created at all?" << std::endl;
+		// std::cerr << "Could not close CAN socket! Not created at all?" << std::endl;
+		logger.logMessage(LogLevel::WARNING, "[PSU] Could not close CAN socket. Not created at all?");
 	}
 }
 
@@ -204,7 +214,8 @@ bool PsuController::setMaxVoltage(float voltage, bool nonvolatile) {
 
 	// send the message frame
 	if(!sendCanFrame(dataFrameToSend)) {
-		std::cerr << "Failed to send voltage command!" << std::endl;
+		// std::cerr << "Failed to send voltage command!" << std::endl;
+		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to send voltage command");
 		return false;
 	}
 	return true;
@@ -234,14 +245,16 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 
 	// send the message frame
 	if(!sendCanFrame(dataFrameToSend)) {
-		std::cerr << "Failed to send current command!" << std::endl;
+		// std::cerr << "Failed to send current command!" << std::endl;
+		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to send current command");
 		return false;
 	}
 
 	// reset command acknowledgement flag if target current has changed
 	if(current != m_lastCurrentCmd) {
 		m_cmdAckFlag = false;
-		std::cout << "[PSU] sent new current command: " << current << "A" << std::endl;
+		// std::cout << "[PSU] sent new current command: " << current << "A" << std::endl;
+		logger.logMessage(LogLevel::DEBUG, "[PSU] Sent new current command" + std::to_string(current) + "A");
 
 		// reenable slot detect after standby periods (on raspberry pi only)
 		if(m_lastCurrentCmd == 0.0f && current > 0.0f) {
@@ -249,7 +262,8 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 				if(cfg.isSlotDetectControlEnabled()) {
 					if(digitalRead(SD_PIN) == LOW) {
 						digitalWrite(SD_PIN, HIGH);
-						std::cout << "[PSU] Slot detect (re)enabled" << std::endl;
+						// std::cout << "[PSU] Slot detect (re)enabled" << std::endl;
+						logger.logMessage(LogLevel::INFO, "[PSU] Slot detect (re)enabled");
 					}	
 				}
 			#endif
@@ -281,7 +295,8 @@ bool PsuController::requestStatusData() {
 
 	// send the message frame
 	if(!sendCanFrame(requestFrame)) {
-		std::cerr << "Failed to send status request command!" << std::endl;
+		// std::cerr << "Failed to send status request command!" << std::endl;
+		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to send status request command");
 		return false;
 	}
 
@@ -465,7 +480,8 @@ bool PsuController::initSlotDetect() {
 		} else {
 			digitalWrite(SD_PIN, HIGH);		// when sd control disabled just turn on once 
 		}
-		std::cout << "[PSU] Slot detect initialized" << std::endl;
+		// std::cout << "[PSU] Slot detect initialized" << std::endl;
+		logger.logMessage(LogLevel::INFO, "[PSU] Slot detect initialized");
 	#endif
 
 	return true;

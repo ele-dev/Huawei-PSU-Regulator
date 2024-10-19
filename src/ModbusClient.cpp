@@ -10,6 +10,7 @@
 extern Queue<GridLoadState> cmdQueue;
 extern PsuController psu;
 extern ConfigFile cfg;
+extern Logger logger;
 
 ModbusClient::ModbusClient() : m_threadRunning(false) {}
 
@@ -21,13 +22,15 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
     // initialize the modbus TCP connection
     this->m_connectionHandle = modbus_new_tcp(serverIp, serverPort);
     if (this->m_connectionHandle == NULL) {
-        std::cerr << "[MODBUS] Error: Unable to allocate libmodbus context" << std::endl;
+        // std::cerr << "[MODBUS] Error: Unable to allocate libmodbus context" << std::endl;
+        logger.logMessage(LogLevel::ERROR, "[Modbus] Unable to allocate libmodbus context");
         return false;
     }
 
     // connect to the modbus power meter
     if (modbus_connect(this->m_connectionHandle) == -1) {
-        std::cerr << "[MODBUS] Error: " << modbus_strerror(errno) << std::endl;
+        // std::cerr << "[MODBUS] Error: " << modbus_strerror(errno) << std::endl;
+        logger.logMessage(LogLevel::ERROR, "[Modbus] " + std::string(modbus_strerror(errno)));
         modbus_free(this->m_connectionHandle);
         return false;
     }
@@ -35,14 +38,16 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
     // configure TCP keep alive for longterm stable connection
     int tcpSocket = modbus_get_socket(this->m_connectionHandle);
     if(tcpSocket == -1) {
-        std::cerr << "[MODBUS] Error: " << modbus_strerror(errno) << std::endl;
+        // std::cerr << "[MODBUS] Error: " << modbus_strerror(errno) << std::endl;
+        logger.logMessage(LogLevel::ERROR, "[Modbus] " + std::string(modbus_strerror(errno)));
         modbus_close(this->m_connectionHandle);
         modbus_free(this->m_connectionHandle);
         return false;
     }
 
     if(!this->enableTcpKeepalive(tcpSocket)) {
-        std::cerr << "[MODBUS] Error: Failed to configure TCP-Keepalive!" << std::endl;
+        // std::cerr << "[MODBUS] Error: Failed to configure TCP-Keepalive!" << std::endl;
+        logger.logMessage(LogLevel::ERROR, "[Modbus] Failed to configure TCP-Keepalive");
         modbus_close(this->m_connectionHandle);
         modbus_free(this->m_connectionHandle);
         return false;
@@ -54,7 +59,8 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
     // spawn separate thread to fetch power meter readings in background
     this->m_listenerThread = std::thread([] (ModbusClient* ptr) {
         ptr->m_threadRunning = true;
-        std::cout << "[MODBUS-thread] listener thread running ..." << std::endl;
+        // std::cout << "[MODBUS-thread] listener thread running ..." << std::endl;
+        logger.logMessage(LogLevel::DEBUG, "[Modbus-thread] listener thread running ...");
 
         // power meter polling loop
         while(ptr->m_threadRunning)
@@ -73,7 +79,8 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
 
             // filter out invalid unrealistic values with a nofication sent along
             if(powerVal < -30000 || powerVal > 20000) {
-                std::cerr << "[MODBUS-thread] Received invalid power state value: " << powerVal << " (ignore)" << std::endl;
+                // std::cerr << "[MODBUS-thread] Received invalid power state value: " << powerVal << " (ignore)" << std::endl;
+                logger.logMessage(LogLevel::WARNING, "[Modbus-thread] Received invalid power state value: " + std::to_string(powerVal) + " (ignore)");
                 continue;
             }
 
@@ -89,7 +96,8 @@ bool ModbusClient::setup(const char* serverIp, const int serverPort) {
             sleep_for(milliseconds(ptr->m_pollingPeriodTime));
         }
 
-        std::cout << "[MODBUS-thread] closeup --> finish thread now" << std::endl;
+        // std::cout << "[MODBUS-thread] closeup --> finish thread now" << std::endl;
+        logger.logMessage(LogLevel::DEBUG, "[Modbus-thread] closeup --> finish thread now");
     }, 
     this);
 
@@ -110,12 +118,14 @@ void ModbusClient::closeup() {
 
 void ModbusClient::increaseModbusPollingRate() {
     this->m_pollingPeriodTime = cfg.getPowerMeterModbusPollingPeriod();
-    std::cout << "[MODBUS] Increased powermeter polling rate for regulation" << std::endl;
+    // std::cout << "[MODBUS] Increased powermeter polling rate for regulation" << std::endl;
+    logger.logMessage(LogLevel::INFO, "[Modbus] Increased powermeter polling rate for regulation");
 }
 
 void ModbusClient::decreaseModbusPollingRate() {
     this->m_pollingPeriodTime = 4000;
-    std::cout << "[MODBUS] Decreased powermeter polling rate" << std::endl;
+    // std::cout << "[MODBUS] Decreased powermeter polling rate" << std::endl;
+    logger.logMessage(LogLevel::INFO, "[Modbus] Decreased powermeter polling rate");
 }
 
 bool ModbusClient::enableTcpKeepalive(int sock) {
@@ -128,25 +138,29 @@ bool ModbusClient::enableTcpKeepalive(int sock) {
     // Do the neccessary socket configuration steps
     int result = setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive));
     if(result < 0) {
-        std::cerr << "[MODBUS] Error enabling SO_KEEPALIVE" << std::endl;
+        // std::cerr << "[MODBUS] Error enabling SO_KEEPALIVE" << std::endl;
+        logger.logMessage(LogLevel::DEBUG, "[Modbus] Failed to enable SO_KEEPALIVE");
         return false;
     }
 
     result = setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &keepaliveIdle, sizeof(keepaliveIdle));
     if(result < 0) {
-        std::cerr << "[MODBUS] Error setting TCP_KEEPIDLE" << std::endl;
+        // std::cerr << "[MODBUS] Error setting TCP_KEEPIDLE" << std::endl;
+        logger.logMessage(LogLevel::DEBUG, "[Modbus] Failed to set TCP_KEEPIDLE");
         return false;
     }
 
     result = setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &keepaliveProbeIntv, sizeof(keepaliveProbeIntv));
     if(result < 0) {
-        std::cerr << "[MODBUS] Error setting TCP_KEEPINTVL" << std::endl;
+        // std::cerr << "[MODBUS] Error setting TCP_KEEPINTVL" << std::endl;
+        logger.logMessage(LogLevel::DEBUG, "[Modbus] Failed to set TCP_KEEPINTVL");
         return false;
     }
 
     result = setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT, &keepAliveProbeCnt, sizeof(keepAliveProbeCnt));
     if(result < 0) {
-        std::cerr << "[MODBUS] Error setting TCP_KEEPCNT" << std::endl;
+        // std::cerr << "[MODBUS] Error setting TCP_KEEPCNT" << std::endl;
+        logger.logMessage(LogLevel::DEBUG, "[Modbus] Failed to set TCP_KEEPCNT");
         return false;
     }
 
@@ -160,7 +174,8 @@ float ModbusClient::readInputRegisterAsFloat32(int startRegAddr) const {
     // attempt to read the 2 registers 
     statusCode = modbus_read_input_registers(this->m_connectionHandle, startRegAddr, 2, tab_reg);
     if(statusCode == -1) {
-        std::cerr << "Failed to read: " << modbus_strerror(errno) << std::endl;
+        // std::cerr << "Failed to read: " << modbus_strerror(errno) << std::endl;
+        logger.logMessage(LogLevel::WARNING, "[Modbus] Failed to read: " + std::string(modbus_strerror(errno)));
         return INVALID_POWERMETER_READ;
     }
 

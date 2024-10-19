@@ -25,7 +25,7 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-#include "ConfigFile.h"
+#include "Utils.h"
 
 #ifdef _TARGET_RASPI
 	#include <wiringPi.h>
