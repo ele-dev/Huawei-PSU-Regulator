@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include "ConfigFile.h"
+#include "Logger.h"
 
 // function prototypes
 bool scheduledClose();

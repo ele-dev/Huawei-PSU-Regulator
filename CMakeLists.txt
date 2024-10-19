@@ -20,7 +20,8 @@ set(SOURCES
     src/PsuController.cpp 
     src/Queue.cpp 
     src/ModbusClient.cpp
-    src/Utils.cpp 
+    src/Utils.cpp
+    src/Logger.cpp
 )
 
 # Find curl and modbus library

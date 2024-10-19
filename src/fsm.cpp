@@ -6,6 +6,7 @@
 #include "fsm.h"
 
 extern ConfigFile cfg;
+extern Logger logger;
 
 PVPowerPlantFSM::PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu, ModbusClient* powermeter)
 {
@@ -105,7 +106,8 @@ void PVPowerPlantFSM::update(GridLoadState gridState, int acInvSupply, float bat
 
         default:
         {
-            std::cerr << "[FSM] Current State is undefined!" << std::endl;
+            // std::cerr << "[FSM] Current State is undefined!" << std::endl;
+            logger.logMessage(LogLevel::WARNING, "[FSM] Current state is not defined");
             break;
         }
     }
@@ -117,13 +119,15 @@ void PVPowerPlantFSM::handleEvent(Event event) {
     if (transitions.find(event) != transitions.end()) {
 
         // transition into following state
-        std::cout << "[FSM] !>> Event: " << getEventName(event) << std::endl;
+        // std::cout << "[FSM] !>> Event: " << getEventName(event) << std::endl;
+        logger.logMessage(LogLevel::INFO, "[FSM] !>> Event: " + getEventName(event));
         currentState = transitions[event];
 
         // execute state entry action
         actionTable[currentState]();
     } else {
-        std::cout << "Event (" << getEventName(event) << ") not defined for current state (" << getStateName(currentState) << ").\n";
+        // std::cout << "Event (" << getEventName(event) << ") not defined for current state (" << getStateName(currentState) << ").\n";
+        logger.logMessage(LogLevel::INFO, "Event  (" + getEventName(event) + ") not defined for current state (" + getStateName(currentState) + ")");
     }
 }
 
@@ -153,12 +157,14 @@ std::string PVPowerPlantFSM::getStateName(State state)
 // state entry actions (executed directly when entering new state) //
 void PVPowerPlantFSM::idleStateEntryAction()
 {
-    std::cout << "[FSM] --> Entering Idle state ..." << std::endl;
+    // std::cout << "[FSM] --> Entering Idle state ..." << std::endl;
+    logger.logMessage(LogLevel::INFO, "[FSM] --> Entering Idle state ...");
 }
 
 void PVPowerPlantFSM::chargeStateEntryAction() 
 {
-    std::cout << "[FSM] --> Entering Charging state ..." << std::endl;
+    // std::cout << "[FSM] --> Entering Charging state ..." << std::endl;
+    logger.logMessage(LogLevel::INFO, "[FSM] --> Entering Charging state ...");
     m_dtu->disableDynamicPowerLimiter();
 
     // increase the polling rate for modbus powermeters (to regulate PSU properly)
@@ -167,7 +173,8 @@ void PVPowerPlantFSM::chargeStateEntryAction()
 
 void PVPowerPlantFSM::dischargeStateEntryAction() 
 {
-    std::cout << "[FSM] --> Entering Discharging state ..." << std::endl;
+    // std::cout << "[FSM] --> Entering Discharging state ..." << std::endl;
+    logger.logMessage(LogLevel::INFO, "[FSM] --> Entering Discharging state ...");
     m_dtu->enableDynamicPowerLimiter();
 
     // decrease the polling rate for modbus powermeters (only sproradic updates suffice)
@@ -220,10 +227,16 @@ void PVPowerPlantFSM::psuPowerRegulation()
     // calculate error (absolute difference from target value)
     // don't try to compensate for very small errors
     error = cfg.getTargetGridPower() - m_gridLoad;
+    /*
     std::cout << "[Regulator] Processing received power state: grid-load = " 
                 << m_gridLoad << "W, deviation = " 
                 << error << "W, AC-charge = "
                 << m_acChargePower << "W" << std::endl;
+    */
+    logger.logMessage(LogLevel::INFO, "[Regulator] Processing received power state: grid-load = " 
+    + std::to_string(m_gridLoad) + "W, deviation = " 
+    + std::to_string(error) + "W, AC-charge = " 
+    + std::to_string(m_acChargePower) + "W");
 
     if(abs(error) < cfg.getRegulatorErrorThreshold()) {
         return;
@@ -245,7 +258,8 @@ void PVPowerPlantFSM::psuPowerRegulation()
     // send max current command to the PSU and idle a short time 
     m_psu->setMaxCurrent(maxCurrentCmd, false);
 
-    std::cout << "[Regulator] Target AC charger power --> " << powerCmd << "W" << std::endl;
+    // std::cout << "[Regulator] Target AC charger power --> " << powerCmd << "W" << std::endl;
+    logger.logMessage(LogLevel::INFO, "[Regulator] Target AC charge power --> " + std::to_string(powerCmd) + "W");
 
     sleep_for(milliseconds(cfg.getRegulatorIdleTime()));
 }
@@ -266,11 +280,13 @@ float PVPowerPlantFSM::calculateCurrentBasedOnPower(float power, float batteryVo
 
     // ensure battery voltage value is in valid range to prevent misscalculations
     if(batteryVoltage < 47.0f) {
-        std::cout << "[Regulator] Invalid battery voltage measurement detected!" << std::endl;
+        // std::cout << "[Regulator] Invalid battery voltage measurement detected!" << std::endl;
+        logger.logMessage(LogLevel::WARNING, "[Regulator] Invalid battery voltage measurement detected");
         batteryVoltage = 47.0f;
     }
     if(batteryVoltage > 53.5f) {
-        std::cout << "[Regulator] Invalid battery voltage measurement detected!" << std::endl;
+        // std::cout << "[Regulator] Invalid battery voltage measurement detected!" << std::endl;
+        logger.logMessage(LogLevel::WARNING, "[Regulator] Invalid battery voltage measurement detected");
         batteryVoltage = 53.5f;
     }
 
@@ -280,7 +296,8 @@ float PVPowerPlantFSM::calculateCurrentBasedOnPower(float power, float batteryVo
     // also ensure the calculated current aligns with the configured maximum power limits
     float maxAllowedChargingCurrent = round(cfg.getMaxChargePower() / 47.0f);
     if(result > maxAllowedChargingCurrent) {
-        std::cout << "[Regulator] Allowed maximum charging current (" << maxAllowedChargingCurrent << "A) reached!" << std::endl;
+        // std::cout << "[Regulator] Allowed maximum charging current (" << maxAllowedChargingCurrent << "A) reached!" << std::endl;
+        logger.logMessage(LogLevel::WARNING, "[Regulator] Allowed maximum charge current (" + std::to_string(maxAllowedChargingCurrent) + "A) reached");
         result = maxAllowedChargingCurrent;
     }
 

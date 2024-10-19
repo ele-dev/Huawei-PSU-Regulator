@@ -16,6 +16,7 @@
 PsuController psu;
 Queue<GridLoadState> cmdQueue;
 ModbusClient powermeter;
+Logger logger;
 ConfigFile cfg("config.txt");
 
 // function prototypes
@@ -23,6 +24,9 @@ void terminateSignalHandler(int);
 
 int main(int argc, char **argv)
 {
+    // welcome message from logger
+    logger.logMessage(LogLevel::INFO, "Hello from new smart logger module :)");
+
     // create signal handler for clean Ctrl+C close up
     struct sigaction sigIntHandler;
     sigIntHandler.sa_handler = terminateSignalHandler;
@@ -33,7 +37,8 @@ int main(int argc, char **argv)
     // read config variables from config file
     bool status = cfg.loadConfig();
     if(!status) {
-        std::cerr << "[Config] Failed to open config.txt file!" << std::endl;
+        // std::cerr << "[Config] Failed to open config.txt file!" << std::endl;
+        logger.logMessage(LogLevel::WARNING, "[Config] Failed to open config.txt file");
         std::cout << " --> using default settings" << std::endl;
     }
 
