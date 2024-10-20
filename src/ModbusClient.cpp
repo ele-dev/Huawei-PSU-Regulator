@@ -170,16 +170,20 @@ float ModbusClient::readInputRegisterAsFloat32(int startRegAddr) const {
     const int registerCount = 2;     // To store 2 input registers (each register is 16 bits)
     uint16_t tab_reg[registerCount];     
     int statusCode = 0;
+    static bool lastReadOperationFailed = false;    // flag for auto recovery detection
 
     // attempt to read the 2 registers 
     statusCode = modbus_read_input_registers(this->m_connectionHandle, startRegAddr, registerCount, tab_reg);
     if(statusCode == -1) {
+        // set the error flag 
+        lastReadOperationFailed = true;
+
         // check if the error is related to disconnection or protocol failure
         if (errno == ECONNRESET || errno == EPIPE || errno == EBADF) {
             logger.logMessage(LogLevel::WARNING, "[Modbus] Connection lost. Attempting to reconnect ...");
             logger.logMessage(LogLevel::DEBUG, "[Modbus] Details: " + std::string(modbus_strerror(errno)));
 
-            // attempt to restablish a stable TCP connection
+            // attempt to restablish a stable TCP connection after a short idle time
             modbus_close(this->m_connectionHandle);
             sleep_for(milliseconds(3000));
             if (modbus_connect(this->m_connectionHandle) == -1) {
@@ -188,8 +192,18 @@ float ModbusClient::readInputRegisterAsFloat32(int startRegAddr) const {
             } else {
                 logger.logMessage(LogLevel::INFO, "[Modbus] Reconnected to modbus powermeter");
             }
+        } else {
+            // print error message and debug info for unhandled connection issues 
+            logger.logMessage(LogLevel::ERROR, "[Modbus] Failed to read input register (connection might be stalled)");
+            logger.logMessage(LogLevel::DEBUG, "[Modbus] Details: " + std::string(modbus_strerror(errno)));
         }
         return INVALID_POWERMETER_READ;
+    }
+
+    // print log message if the client successfully auto recovered from a connection issue
+    if(lastReadOperationFailed ==  true) {
+        lastReadOperationFailed = false;
+        logger.logMessage(LogLevel::INFO, "[Modbus] Successfully auto recovered after connection issue");
     }
 
     float value = modbus_get_float_abcd(tab_reg);
