@@ -282,7 +282,7 @@ float PVPowerPlantFSM::calculateCurrentBasedOnPower(float power, float batteryVo
     // also ensure the calculated current aligns with the configured maximum power limits
     float maxAllowedChargingCurrent = round(cfg.getMaxChargePower() / 47.0f);
     if(result > maxAllowedChargingCurrent) {
-        logger.logMessage(LogLevel::WARNING, "[Regulator] Allowed maximum charge current (" + std::to_string(maxAllowedChargingCurrent) + "A) reached");
+        logger.logMessage(LogLevel::WARNING, "[Regulator] Allowed maximum charge current (" + float2String(maxAllowedChargingCurrent, 2) + "A) reached");
         result = maxAllowedChargingCurrent;
     }
 
