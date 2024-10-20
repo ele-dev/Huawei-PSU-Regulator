@@ -37,8 +37,7 @@ void OpenDtuInterface::enableDynamicPowerLimiter()
     std::string url = "http://" + m_address + "/api/powerlimiter/config";
     std::string jsonStr = "data={\"enabled\":true,\"verbose_logging\":false,\"solar_passthrough_enabled\":false,\"is_inverter_behind_powermeter\":true,\"inverter_id\":0,\"inverter_channel_id\":0,\"target_power_consumption\":5,\"target_power_consumption_hysteresis\":5,\"lower_power_limit\":30,\"upper_power_limit\":800,\"battery_soc_start_threshold\":80,\"battery_soc_stop_threshold\":20,\"voltage_start_threshold\":" + m_startDischargeVoltage + ",\"voltage_stop_threshold\":" + m_stopDischargeVoltage + ",\"voltage_load_correction_factor\":0.0015,\"inverter_restart_hour\":0}";
 
-    // Send the POST request
-    // std::cout << "Request OpenDTU to enable DPL ..." << std::endl;
+    // send the POST request
     logger.logMessage(LogLevel::INFO, "[OpenDTU] Request to enable DPL ...");
     sendPostRequest(url, jsonStr);
     m_DynamicLimiterEnabled = true;
@@ -50,8 +49,7 @@ void OpenDtuInterface::disableDynamicPowerLimiter()
     std::string url = "http://" + m_address + "/api/powerlimiter/config";    
     std::string jsonStr = "data={\"enabled\":false,\"verbose_logging\":false,\"solar_passthrough_enabled\":false,\"is_inverter_behind_powermeter\":true,\"inverter_id\":0,\"inverter_channel_id\":0,\"target_power_consumption\":5,\"target_power_consumption_hysteresis\":5,\"lower_power_limit\":30,\"upper_power_limit\":800,\"battery_soc_start_threshold\":80,\"battery_soc_stop_threshold\":20,\"voltage_start_threshold\":49.0,\"voltage_stop_threshold\":48.3,\"voltage_load_correction_factor\":0.0015,\"inverter_restart_hour\":0}";
 
-    // Send the POST request
-    // std::cout << "Request OpenDTU to disable DPL ..." << std::endl;
+    // send the POST request
     logger.logMessage(LogLevel::INFO, "[OpenDTU] Request to disable DPL ...");
     sendPostRequest(url, jsonStr);
     m_DynamicLimiterEnabled = false;
@@ -59,14 +57,21 @@ void OpenDtuInterface::disableDynamicPowerLimiter()
 
 void OpenDtuInterface::fetchCurrentState() 
 {
+    static bool lastFetchFailed = false;
+
     // send HTTP GET request for live status data of battery inverter
     std::string url = "http://" + m_address + "/api/livedata/status?inv=" + m_batteryInverterId;
     std::string response = sendGetRequest(url);
 
     if(response == "failed") {
-        // std::cerr << "Failed to fetch inverter status!" << std::endl;
+        lastFetchFailed = true;
         logger.logMessage(LogLevel::WARNING, "[OpenDTU] Failed to fetch current inverter status");
         return;
+    }
+
+    if(lastFetchFailed) {
+        lastFetchFailed = false;
+        logger.logMessage(LogLevel::INFO, "[OpenDTU] Successfully fetched inverter status after connection issues");
     }
 
     // decode response and extract measurements: inverterPower, batteryVoltage, etc.
@@ -98,8 +103,7 @@ void OpenDtuInterface::fetchInitialDPLState()
     std::string response = sendGetRequest(url);
 
     if(response == "failed") {
-        // std::cerr << "Failed to fetch inverter status!" << std::endl;
-        logger.logMessage(LogLevel::WARNING, "[OpenDTU] Failed to fetch current inverter status");
+        logger.logMessage(LogLevel::WARNING, "[OpenDTU] Failed to fetch initial inverter status");
         return;
     }
     json jsonData = json::parse(response);
@@ -126,6 +130,7 @@ void OpenDtuInterface::setupCurlHandles()
     }
 }
 
+// callback function for GET request (must remain small and non-blocking) 
 size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) 
 {
     ((std::string *)userp)->append((char *)contents, size * nmemb);
@@ -141,35 +146,31 @@ std::string OpenDtuInterface::sendGetRequest(const std::string &url) const
     curl_easy_setopt(m_curl_get_handle, CURLOPT_URL, url.c_str());
     curl_easy_setopt(m_curl_get_handle, CURLOPT_WRITEDATA, &readBuffer);
 
-    // m_writeCallbackDone = false;
-
-    // Perform the request
+    // perform the request
     res = curl_easy_perform(m_curl_get_handle);
 
-    // Check for errors
+    // check for errors
     if(res == CURLE_COULDNT_CONNECT) {
-        // std::cerr << "[OpenDTU] Could not connect via HTTP!" << std::endl;
         logger.logMessage(LogLevel::ERROR, "[OpenDTU] Could not connect via HTTP");
         return "failed";
     }
 
     if(res == CURLE_OPERATION_TIMEDOUT) {
-        // std::cerr << "[OpenDTU] CURL GET request timed out!" << std::endl;
         logger.logMessage(LogLevel::WARNING, "[OpenDTU] Curl HTTP GET request timed out");
         return "failed";
     }
 
     if (res != CURLE_OK) {
-        // std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
         logger.logMessage(LogLevel::DEBUG, "curl_easy_perform() failed: " + std::string(curl_easy_strerror(res)));
         return "failed";
     }
 
     // wait for the callback func to write response to the read buffer
-    while(readBuffer == "") {      /* || !m_writeCallbackDone  || */
+    while(readBuffer == "") {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
+    // give the callback function enough time to finish writing into the read buffer
     std::this_thread::sleep_for(std::chrono::milliseconds(60));
 
     return readBuffer;
@@ -180,28 +181,25 @@ void OpenDtuInterface::sendPostRequest(const std::string &url, const std::string
 {
     CURLcode res;
 
-    // Set CURL options
+    // set CURL options
     curl_easy_setopt(m_curl_post_handle, CURLOPT_URL, url.c_str());
     curl_easy_setopt(m_curl_post_handle, CURLOPT_POSTFIELDS, jsonData.c_str());
 
-    // Perform the request
+    // perform the request
     res = curl_easy_perform(m_curl_post_handle);
 
-    // Check for errors
+    // check for errors
     if(res == CURLE_COULDNT_CONNECT) {
-        // std::cerr << "[OpenDTU] Could not connect via HTTP!" << std::endl;
         logger.logMessage(LogLevel::ERROR, "[OpenDTU] Could not connect via HTTP");
         return;
     }
 
     if(res == CURLE_OPERATION_TIMEDOUT) {
-        // std::cerr << "[OpenDTU] CURL POST request timed out!" << std::endl;
         logger.logMessage(LogLevel::WARNING, "[OpenDTU] Curl HTTP POST request timed out");
         return;
     }
 
     if (res != CURLE_OK) {
-        // std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
         logger.logMessage(LogLevel::DEBUG, "curl_easy_perform() failed: " + std::string(curl_easy_strerror(res)));
     }
 }
