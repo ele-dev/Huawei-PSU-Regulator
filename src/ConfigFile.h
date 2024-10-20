@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "Utils.h"
 #include "default-conf.h"
 
 class ConfigFile

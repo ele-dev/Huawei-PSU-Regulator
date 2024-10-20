@@ -6,7 +6,6 @@
 
 #include "opendtu-interface.h"
 #include "fsm.h"
-
 #include "ModbusClient.h"
 #include "PsuController.h"
 #include "ConfigFile.h"
@@ -16,7 +15,7 @@
 PsuController psu;
 Queue<GridLoadState> cmdQueue;
 ModbusClient powermeter;
-Logger logger("energy-meter.log");
+Logger logger("energy-manager.log");
 ConfigFile cfg("config.txt");
 
 // function prototypes
@@ -36,7 +35,7 @@ int main(int argc, char **argv)
     if(!status) {
         // std::cerr << "[Config] Failed to open config.txt file!" << std::endl;
         logger.logMessage(LogLevel::WARNING, "[Config] Failed to open config.txt file");
-        std::cout << " --> using default settings" << std::endl;
+        logger.logMessage(LogLevel::INFO, "[Config] --> using default settings");
     }
 
     // print out the config variable overview
@@ -73,13 +72,6 @@ int main(int argc, char **argv)
 
         // required measurements from DTU
         dtu.fetchCurrentState();
-
-        #ifdef _VERBOSE_OUTPUT
-            std::cout << "Grid Load:         " << latestGridLoadState.tasmotaPowerCmd << "W" << std::endl;
-            std::cout << "AC Charger Power:  " << latestGridLoadState.psuAcInputPower << "W" << std::endl;
-            std::cout << "AC Inverter Power: " << dtu.getBatteryToGridPower() << "W" << std::endl;
-            std::cout << "Battery Voltage:   " << dtu.getBatteryVoltage() << "V" << std::endl;
-        #endif
 
         // update the fsm
         fsm.update(latestGridLoadState, dtu.getBatteryToGridPower(), dtu.getBatteryVoltage());

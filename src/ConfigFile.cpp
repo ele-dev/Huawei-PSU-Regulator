@@ -5,6 +5,8 @@
 
 #include "ConfigFile.h"
 
+extern Logger logger;
+
 ConfigFile::ConfigFile(std::string filename) {
     m_fileName = filename;
     
@@ -98,7 +100,8 @@ void ConfigFile::parseLine(std::string line) {
     std::vector<std::string> pair = split(line, ':');
 
     if(pair.size() != 2) {
-        std::cerr << "[Config] Invalid line in config file!" << std::endl;
+        // std::cerr << "[Config] Invalid line in config file!" << std::endl;
+        logger.logMessage(LogLevel::ERROR, "[Config] Invalid line in config file");
         return;
     }
 
@@ -126,21 +129,25 @@ void ConfigFile::parseLine(std::string line) {
         } else if(key == "scheduled-exit-hour") {
             m_scheduledExitHour = stoi(value);
             if(m_scheduledExitHour < 0) {
-                std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                // std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                logger.logMessage(LogLevel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
                 m_scheduledExitHour = 0;
             }
             if(m_scheduledExitHour > 23) {
-                std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                // std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                logger.logMessage(LogLevel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
                 m_scheduledExitHour = 23;
             }
         } else if(key == "scheduled-exit-minute") {
             m_scheduledExitMinute = stoi(value);
             if(m_scheduledExitMinute < 0) {
-                std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                // std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                logger.logMessage(LogLevel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
                 m_scheduledExitMinute = 0;
             }
             if(m_scheduledExitMinute > 59) {
-                std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                // std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
+                logger.logMessage(LogLevel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
                 m_scheduledExitMinute = 59;
             }
         } else if(key == "slotdetect-control-enabled") {
@@ -149,7 +156,8 @@ void ConfigFile::parseLine(std::string line) {
             m_slotDetectKeepAliveTime = stoi(value);
             // must be at least 10 seconds long
             if(m_slotDetectKeepAliveTime < 10) {
-                std::cerr << "slot detect keep alive time must be at least 10 seconds!" << std::endl;
+                // std::cerr << "slot detect keep alive time must be at least 10 seconds!" << std::endl;
+                logger.logMessage(LogLevel::WARNING, "[Config] Slot detect keep alive time must be at least 10 seconds");
                 m_slotDetectKeepAliveTime = SD_KEEP_ALIVE_TIME;
             }
         } else if (key == "opendtu-hostname") {
@@ -171,10 +179,12 @@ void ConfigFile::parseLine(std::string line) {
         } else if(key == "modbus-powermeter-polling-rate") {
             m_powerMeterModbusPollingPeriod = stoi(value);
         } else {
-            std::cerr << "[Config] Invalid config variable named " << key << std::endl;
+            // std::cerr << "[Config] Invalid config variable named " << key << std::endl;
+            logger.logMessage(LogLevel::WARNING, "[Config] Invalid config variable named \'" + key + "\'");
         }
     } catch(...) {
-        std::cerr << "Exception catched while parsing config file!" << std::endl;
+        // std::cerr << "Exception catched while parsing config file!" << std::endl;
+        logger.logMessage(LogLevel::ERROR, "[Config] Exception catched while parsing config file");
     }
 }
 
