@@ -1,7 +1,12 @@
+/*
+    File: main.cpp
+    This is file contains the top level context of application logic
+    written by Elias Geiger
+*/
+
 #include "opendtu-interface.h"
 #include "fsm.h"
-
-#include "UdpReceiver.h"
+#include "ModbusClient.h"
 #include "PsuController.h"
 #include "ConfigFile.h"
 #include "Utils.h"
@@ -9,7 +14,8 @@
 // global instances
 PsuController psu;
 Queue<GridLoadState> cmdQueue;
-UdpReceiver receiver;
+ModbusClient powermeter;
+Logger logger("energy-manager.log");
 ConfigFile cfg("config.txt");
 
 // function prototypes
@@ -27,8 +33,9 @@ int main(int argc, char **argv)
     // read config variables from config file
     bool status = cfg.loadConfig();
     if(!status) {
-        std::cerr << "[Config] Failed to open config.txt file!" << std::endl;
-        std::cout << " --> using default settings" << std::endl;
+        // std::cerr << "[Config] Failed to open config.txt file!" << std::endl;
+        logger.logMessage(LogLevel::WARNING, "[Config] Failed to open config.txt file");
+        logger.logMessage(LogLevel::INFO, "[Config] --> using default settings");
     }
 
     // print out the config variable overview
@@ -44,13 +51,13 @@ int main(int argc, char **argv)
     }
 
     // attempt to start udp receiver to listen for power change messages
-    status = receiver.setup(cfg.getUdpPort());
+    status = powermeter.setup(cfg.getPowerMeterModbusIp(), cfg.getPowerMeterModbusPort());
     if(!status) {
         terminateSignalHandler(EXIT_FAILURE);
     }
 
     // at last create the FSM and pass references to PSU & DTU
-    PVPowerPlantFSM fsm(&dtu, &psu);
+    PVPowerPlantFSM fsm(&dtu, &psu, &powermeter);
 
     // main application loop in the main thread
     while (!scheduledClose())
@@ -66,13 +73,6 @@ int main(int argc, char **argv)
         // required measurements from DTU
         dtu.fetchCurrentState();
 
-        #ifdef _VERBOSE_OUTPUT
-            std::cout << "Grid Load:         " << latestGridLoadState.tasmotaPowerCmd << "W" << std::endl;
-            std::cout << "AC Charger Power:  " << latestGridLoadState.psuAcInputPower << "W" << std::endl;
-            std::cout << "AC Inverter Power: " << dtu.getBatteryToGridPower() << "W" << std::endl;
-            std::cout << "Battery Voltage:   " << dtu.getBatteryVoltage() << "V" << std::endl;
-        #endif
-
         // update the fsm
         fsm.update(latestGridLoadState, dtu.getBatteryToGridPower(), dtu.getBatteryVoltage());
     }
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
 void terminateSignalHandler(int code) {
     // shutdown sockets, threads and queue
-    receiver.closeUp();
+    powermeter.closeup();
     psu.shutdown();
     cmdQueue.clear();
     exit(code);

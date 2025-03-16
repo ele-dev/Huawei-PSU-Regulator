@@ -61,4 +61,7 @@
 #define OPENDTU_STOP_DISCHARGE_VOLTAGE 48.3f
 #define OPENDTU_START_DISCHARGE_VOLTAGE 49.0f
 
-// fsm related config parameters
+// modbus config for shelly
+#define PM_MODBUS_IP "192.168.1.123"
+#define PM_MODBUS_PORT 502
+#define PM_MODBUS_POLLING_PERIOD_MS 1000

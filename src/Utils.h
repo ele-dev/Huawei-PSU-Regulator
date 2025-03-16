@@ -1,6 +1,5 @@
 /*
     File: Utils.h
-
     written by Elias Geiger
 */
 
@@ -8,14 +7,19 @@
 
 #include <ctime>
 #include <sstream>
-#include "ConfigFile.h"
 
-extern ConfigFile cfg;
+#include "ConfigFile.h"
+#include "Logger.h"
 
 // function prototypes
 bool scheduledClose();
 float round(float var);
 std::string float2String(float var, int decimalCnt);
+
+enum class PowerMeterType {
+    TASMOTA,
+    SHELLY
+};
 
 struct GridLoadState
 {

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # Setup the project
 project(energy-manager)
@@ -11,9 +11,6 @@ enable_language(CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Set the Raspberry Pi toolchain file (only for cross compiling)
-# set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/RaspberryPi.cmake)
-
 # Add your source files here
 set(SOURCES
     src/main.cpp
@@ -22,21 +19,29 @@ set(SOURCES
     src/ConfigFile.cpp
     src/PsuController.cpp 
     src/Queue.cpp 
-    src/UdpReceiver.cpp 
-    src/Utils.cpp 
+    src/ModbusClient.cpp
+    src/Utils.cpp
+    src/Logger.cpp
 )
+
+# Find curl and modbus library
+find_package(CURL REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
 
 # Add any additional include directories
 include_directories(
-    include
+    ${LIBMODBUS_INCLUDE_DIRS}
 )
 
-# Find curl library
-find_package(CURL REQUIRED)
+link_directories(
+    ${LIBMODBUS_LIBRARY_DIRS}
+)
 
 # Add any external libraries (e.g., wiringPi)
 # find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
 find_library(PTHREAD_LIB pthread)
+find_library(MODBUS_LIB libmodbus)
 
 # Create the executable
 add_executable(energy-manager ${SOURCES})
@@ -45,5 +50,6 @@ add_executable(energy-manager ${SOURCES})
 target_link_libraries(energy-manager
     # ${WIRINGPI_LIB}                             # (raspberry pi only)
     ${PTHREAD_LIB}
+    ${LIBMODBUS_LIBRARIES}
     CURL::libcurl
 )
