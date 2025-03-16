@@ -8,7 +8,7 @@ set(EXECUTABLE_OUTPUT_PATH "bin")
 
 # Set the C++ language standard
 enable_language(CXX)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add your source files here
