@@ -27,24 +27,18 @@ set(SOURCES
 # Find curl and modbus library
 find_package(CURL REQUIRED)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
-
-# Add any additional include directories
-include_directories(
-    ${LIBMODBUS_INCLUDE_DIRS}
-)
-
-link_directories(
-    ${LIBMODBUS_LIBRARY_DIRS}
-)
-
-# Add any external libraries (e.g., wiringPi)
-# find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
 find_library(PTHREAD_LIB pthread)
 find_library(MODBUS_LIB libmodbus)
+# find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
+
+# pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
 
 # Create the executable
 add_executable(energy-manager ${SOURCES})
+
+target_link_directories(energy-manager PRIVATE
+    ${LIBMODBUS_LIBRARY_DIRS}
+)
 
 # Link the necessary libraries
 target_link_libraries(energy-manager
@@ -52,4 +46,8 @@ target_link_libraries(energy-manager
     ${PTHREAD_LIB}
     ${LIBMODBUS_LIBRARIES}
     CURL::libcurl
+)
+
+target_include_directories(energy-manager PRIVATE
+    ${LIBMODBUS_INCLUDE_DIRS}
 )
