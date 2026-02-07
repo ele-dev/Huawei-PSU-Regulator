@@ -24,30 +24,22 @@ set(SOURCES
     src/Logger.cpp
 )
 
-# Find curl and modbus library
+# Find packages
 find_package(CURL REQUIRED)
 find_package(PkgConfig REQUIRED)
-find_library(PTHREAD_LIB pthread)
-find_library(MODBUS_LIB libmodbus)
+
+# Check for required libs (with pkg-config)
+pkg_check_modules(LIBMODBUS REQUIRED IMPORTED_TARGET libmodbus)
+
+# Find other libs (without pkg-config)
 # find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
 
-# pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
-
 # Create the executable
-add_executable(energy-manager ${SOURCES})
-
-target_link_directories(energy-manager PRIVATE
-    ${LIBMODBUS_LIBRARY_DIRS}
-)
+add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})
 
 # Link the necessary libraries
-target_link_libraries(energy-manager
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     # ${WIRINGPI_LIB}                             # (raspberry pi only)
-    ${PTHREAD_LIB}
-    ${LIBMODBUS_LIBRARIES}
+    PkgConfig::LIBMODBUS
     CURL::libcurl
-)
-
-target_include_directories(energy-manager PRIVATE
-    ${LIBMODBUS_INCLUDE_DIRS}
 )
