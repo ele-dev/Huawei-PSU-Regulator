@@ -16,7 +16,7 @@
 #include <cstring>
 #include <thread>
 
-#include "Queue.cpp"
+#include "Queue.hpp"
 #include "PsuController.hpp"
 #include "Utils.hpp"
 

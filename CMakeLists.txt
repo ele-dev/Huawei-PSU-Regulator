@@ -21,7 +21,6 @@ set(SOURCES
     src/fsm.cpp
     src/ConfigFile.cpp
     src/PsuController.cpp 
-    src/Queue.cpp 
     src/ModbusClient.cpp
     src/Utils.cpp
     src/Logger.cpp
