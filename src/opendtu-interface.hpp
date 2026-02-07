@@ -1,5 +1,5 @@
 /*
-    File: opendtu-interface.h
+    File: opendtu-interface.hpp
     This Module provides a interface to opentu HTTP API using curl requests
     
     written by Elias Geiger
@@ -14,7 +14,7 @@
 #include <thread>
 #include <chrono>
 
-#include "Utils.h"
+#include "Utils.hpp"
 
 #define HTTP_TIMEOUT_SEC 2
 

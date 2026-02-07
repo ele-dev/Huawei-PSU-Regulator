@@ -1,5 +1,5 @@
 /*
-    File: ConfigFile.h
+    File: ConfigFile.hpp
     written by Elias Geiger
 */
 
@@ -11,8 +11,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "Utils.h"
-#include "default-conf.h"
+#include "Utils.hpp"
+#include "default-conf.hpp"
 
 class ConfigFile
 {

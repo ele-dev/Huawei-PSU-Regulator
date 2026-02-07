@@ -3,7 +3,7 @@
     written by Elias Geiger
 */
 
-#include "ModbusClient.h"
+#include "ModbusClient.hpp"
 
 // Definitions //
 

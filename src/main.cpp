@@ -4,12 +4,12 @@
     written by Elias Geiger
 */
 
-#include "opendtu-interface.h"
-#include "fsm.h"
-#include "ModbusClient.h"
-#include "PsuController.h"
-#include "ConfigFile.h"
-#include "Utils.h"
+#include "opendtu-interface.hpp"
+#include "fsm.hpp"
+#include "ModbusClient.hpp"
+#include "PsuController.hpp"
+#include "ConfigFile.hpp"
+#include "Utils.hpp"
 
 // global instances
 PsuController psu;

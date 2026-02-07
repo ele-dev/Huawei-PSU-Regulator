@@ -1,9 +1,9 @@
 /*
-    File: PsuController.h
+    File: PsuController.hpp
     This class handles CAN communication with the Huawei R4850G2 power supply
 
-	Code from original repository: https://github.com/craigpeacock/Huawei_R4850G2_CAN
-	Edited by Elias Geiger
+    Code from original repository: https://github.com/craigpeacock/Huawei_R4850G2_CAN
+    Edited by Elias Geiger
 */
 
 #pragma once
@@ -25,7 +25,7 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-#include "Utils.h"
+#include "Utils.hpp"
 
 #ifdef ENABLE_GPIO
 	#include <wiringPi.h>

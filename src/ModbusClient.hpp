@@ -1,5 +1,5 @@
 /*
-    File: ModbusClient.h
+    File: ModbusClient.hpp
     This module provides functionality for integration of Modbus/TCP enabled 
     3 phase powermeters such as the Shelly Pro 3em
 
@@ -17,8 +17,8 @@
 #include <thread>
 
 #include "Queue.cpp"
-#include "PsuController.h"
-#include "Utils.h"
+#include "PsuController.hpp"
+#include "Utils.hpp"
 
 #define SHELLY_POWER_REG_ADDR 1014          // 31014 (dec) according to shelly docs
 #define INVALID_POWERMETER_READ -9999.9f

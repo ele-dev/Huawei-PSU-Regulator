@@ -13,10 +13,10 @@
 #include <chrono>
 #include <thread>
 
-#include "opendtu-interface.h"
-#include "PsuController.h"
-#include "Utils.h"
-#include "ModbusClient.h"
+#include "opendtu-interface.hpp"
+#include "PsuController.hpp"
+#include "Utils.hpp"
+#include "ModbusClient.hpp"
 
 using std::this_thread::sleep_for;
 using std::chrono::seconds;

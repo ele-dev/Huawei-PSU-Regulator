@@ -3,7 +3,7 @@
     written by Elias Geiger
 */
 
-#include "opendtu-interface.h"
+#include "opendtu-interface.hpp"
 
 extern ConfigFile cfg;
 extern Logger logger;

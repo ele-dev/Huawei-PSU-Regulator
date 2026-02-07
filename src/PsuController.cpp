@@ -3,7 +3,7 @@
 	Edited by Elias Geiger
 */
 
-#include "PsuController.h"
+#include "PsuController.hpp"
 
 extern ConfigFile cfg;
 extern Logger logger;

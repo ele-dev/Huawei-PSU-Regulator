@@ -3,7 +3,7 @@
     written by Elias Geiger
 */
 
-#include "fsm.h"
+#include "fsm.hpp"
 
 extern ConfigFile cfg;
 extern Logger logger;

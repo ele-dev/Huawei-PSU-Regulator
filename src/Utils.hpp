@@ -1,5 +1,5 @@
 /*
-    File: Utils.h
+    File: Utils.hpp
     written by Elias Geiger
 */
 
@@ -8,8 +8,8 @@
 #include <ctime>
 #include <sstream>
 
-#include "ConfigFile.h"
-#include "Logger.h"
+#include "ConfigFile.hpp"
+#include "Logger.hpp"
 
 // function prototypes
 bool scheduledClose();

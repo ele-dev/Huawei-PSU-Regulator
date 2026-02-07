@@ -3,7 +3,7 @@
     written by Elias Geiger
 */
 
-#include "ConfigFile.h"
+#include "ConfigFile.hpp"
 
 extern Logger logger;
 

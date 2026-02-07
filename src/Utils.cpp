@@ -3,7 +3,7 @@
     written by Elias Geiger
 */
 
-#include "Utils.h"
+#include "Utils.hpp"
 
 extern ConfigFile cfg;
 

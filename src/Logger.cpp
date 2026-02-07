@@ -3,7 +3,7 @@
     written by Elias Geiger
 */
 
-#include "Logger.h"
+#include "Logger.hpp"
 
 Logger::Logger(const char* logfilename) {
     this->m_logFile.open(logfilename, std::ios_base::app);
