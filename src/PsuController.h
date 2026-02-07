@@ -27,7 +27,7 @@
 
 #include "Utils.h"
 
-#ifdef _TARGET_RASPI
+#ifdef ENABLE_GPIO
 	#include <wiringPi.h>
 #endif
 
@@ -108,5 +108,5 @@ private:
     bool sendCanFrame(struct can_frame);
     void updateLocalParams(uint8_t*);
     void processAckFrame(uint8_t*);
-	bool initSlotDetect();
+    bool initSlotDetect();
 };

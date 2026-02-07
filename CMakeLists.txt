@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.20)
 # Setup the project
 project(energy-manager)
 
+# configure build options
+option(ENABLE_GPIO "Use GPIO header of Raspberry Pi to control slot detect relay" ON)
+
 # Set the bin folder
 set(EXECUTABLE_OUTPUT_PATH "bin")
 
@@ -32,15 +35,18 @@ find_package(nlohmann_json REQUIRED)
 # Check for required libs (with pkg-config)
 pkg_check_modules(LIBMODBUS REQUIRED IMPORTED_TARGET libmodbus)
 
-# Find other libs (without pkg-config)
-# find_library(WIRINGPI_LIB wiringPi)             # (raspberry pi only)
-
-# Create the executable
+# create the executable
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})
+
+# compile flag for raspberry pi exclusive functionality
+if (ENABLE_GPIO)
+    find_library(WIRINGPI_LIB wiringPi)
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${WIRINGPI_LIB})
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE ENABLE_GPIO)
+endif()
 
 # Link the necessary libraries
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
-    # ${WIRINGPI_LIB}                             # (raspberry pi only)
     PkgConfig::LIBMODBUS
     CURL::libcurl
     nlohmann_json::nlohmann_json

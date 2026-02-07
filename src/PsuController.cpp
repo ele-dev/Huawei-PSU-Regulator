@@ -120,7 +120,7 @@ bool PsuController::setup(const char* interfaceName) {
 					ptr->m_secondsSinceLastCharge += static_cast<unsigned int>(timeElapsed.count() / 1000);
 					if(ptr->m_secondsSinceLastCharge >= cfg.getSlotDetectKeepAliveTime()) {
 						// turn off slot detect to enter stand by mode for power saving
-						#ifdef _TARGET_RASPI
+						#ifdef ENABLE_GPIO
 							if(cfg.isSlotDetectControlEnabled()) {
 								if(digitalRead(SD_PIN) == HIGH) {
 									digitalWrite(SD_PIN, LOW);
@@ -146,7 +146,7 @@ bool PsuController::setup(const char* interfaceName) {
 
 void PsuController::shutdown() {
 	// disable slot detect (on raspberry pi only)
-	#ifdef _TARGET_RASPI 
+	#ifdef ENABLE_GPIO
 		if(digitalRead(SD_PIN) == HIGH) {
 			digitalWrite(SD_PIN, LOW);
 			logger.logMessage(LogLevel::INFO, "[PSU] Slot detect disabled before exit");
@@ -246,7 +246,7 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 
 		// reenable slot detect after standby periods (on raspberry pi only)
 		if(m_lastCurrentCmd == 0.0f && current > 0.0f) {
-			#ifdef _TARGET_RASPI
+			#ifdef ENABLE_GPIO
 				if(cfg.isSlotDetectControlEnabled()) {
 					if(digitalRead(SD_PIN) == LOW) {
 						digitalWrite(SD_PIN, HIGH);
@@ -471,7 +471,7 @@ void PsuController::processAckFrame(uint8_t *frame) {
 
 // setup wiringpi for direct GPIO interfacing (on raspberry pi only)
 bool PsuController::initSlotDetect() {
-	#ifdef _TARGET_RASPI
+	#ifdef ENABLE_GPIO
 		wiringPiSetupGpio();
 		pinMode(SD_PIN, OUTPUT);
 
