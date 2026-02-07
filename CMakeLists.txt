@@ -38,6 +38,11 @@ pkg_check_modules(LIBMODBUS REQUIRED IMPORTED_TARGET libmodbus)
 # create the executable
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})
 
+# configure include path
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
 # compile flag for raspberry pi exclusive functionality
 if (ENABLE_GPIO)
     find_library(WIRINGPI_LIB wiringPi)
