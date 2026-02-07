@@ -16,8 +16,6 @@
 
 #include "Utils.h"
 
-using json = nlohmann::json;
-
 #define HTTP_TIMEOUT_SEC 2
 
 class OpenDtuInterface

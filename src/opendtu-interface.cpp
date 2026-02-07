@@ -8,6 +8,8 @@
 extern ConfigFile cfg;
 extern Logger logger;
 
+using json = nlohmann::json;
+
 OpenDtuInterface::OpenDtuInterface() : m_BatteryToGridPower(0.0f), m_BatteryVoltage(40.0f) 
 {
     // intit class internal parameters

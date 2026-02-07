@@ -27,6 +27,7 @@ set(SOURCES
 # Find packages
 find_package(CURL REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 # Check for required libs (with pkg-config)
 pkg_check_modules(LIBMODBUS REQUIRED IMPORTED_TARGET libmodbus)
@@ -42,4 +43,5 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     # ${WIRINGPI_LIB}                             # (raspberry pi only)
     PkgConfig::LIBMODBUS
     CURL::libcurl
+    nlohmann_json::nlohmann_json
 )
