@@ -7,14 +7,14 @@
 
 #pragma once
 
-// for debugging purposes
-// #define _VERBOSE_OUTPUT
-
 /*
     These are the default fallback values for all config variables.
     They are only used in case the config file doesn't contain valid entries
     don't change anything here! use the config.txt file instead!
-*/ 
+*/
+
+// logging verbosity level
+// #define LOGGING_VERBOSITY "debug"
 
 // configuration parameters
 #define CAN_INTERFACE_NAME "can0"

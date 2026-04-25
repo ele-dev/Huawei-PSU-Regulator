@@ -8,14 +8,14 @@
 extern ConfigFile cfg;
 
 // helper function for detecting a scheduled exit event to close the application
-bool scheduledClose() {
-    if(cfg.isScheduledExitEnabled()) {
+bool ScheduledClose() {
+    if(cfg.IsScheduledExitEnabled()) {
         // get current system time
         time_t currTime = time(NULL);
         tm* tm_local = localtime(&currTime);
         
         // check if time for scheduled exit has passed
-        if(tm_local->tm_hour >= cfg.getScheduledExitHour() && tm_local->tm_min >= cfg.getScheduledExitMinute()) {
+        if(tm_local->tm_hour >= cfg.GetScheduledExitHour() && tm_local->tm_min >= cfg.GetScheduledExitMinute()) {
             return true;
         }
     }
@@ -24,18 +24,18 @@ bool scheduledClose() {
 }
 
 // Helper function to round float values on decimals
-float round(float var)
+float Round(float value)
 {
-    float value = (int)(var * 100 + .5);
-    return static_cast<float>(value) / 100;
+    float val = (int)(value * 100 + .5);
+    return static_cast<float>(val) / 100;
 }
 
 // Helper function to quickly get string representation of a float value
-std::string float2String(float var, int decimalCnt) 
+std::string Float2String(float value, int decimalDigits) 
 {
     std::stringstream ss;
-    ss.precision(decimalCnt);        // Set precision to 2 decimal places
-    ss << std::fixed << var;
+    ss.precision(decimalDigits);        // Set precision to 2 decimal places
+    ss << std::fixed << value;
     std::string str = ss.str();
     return str;
 }

@@ -18,7 +18,7 @@ class Queue {
 public:
     // Pushes new element into queue.
     // function blocks as long as mutex is locked by someone else
-    void push(T elem)
+    void Push(T elem)
     {
         // apply lock guard for thread safe access to the queue
         const std::lock_guard<std::mutex> lock(m_mutex);
@@ -28,7 +28,7 @@ public:
     // Attempts to fetch and pop elements from the queue and stores the latest element.
     // returns false if queue was empty from the start
     // return by reference, blocks as long as locked by someone else, doesn't wait for queue to be filled when empty
-    bool tryPop(T& elem)
+    bool TryPop(T& elem)
     {
         // apply lock guard for thread safe access to the queue
         const std::lock_guard<std::mutex> lock(m_mutex);
@@ -48,7 +48,7 @@ public:
     }
 
     // Pops all elements in the queue until empty
-    void clear()
+    void Clear()
     {
         // apply lock guard for thread safe access to the queue
         const std::lock_guard<std::mutex> lock(m_mutex);

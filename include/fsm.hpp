@@ -47,19 +47,20 @@ struct EventCondition {
         : condition(cond), hysteresis(hyst), lastChecked(std::chrono::steady_clock::now()), conditionMet(false) {}
 };
 
-class PVPowerPlantFSM {
+class PVPowerPlantFSM 
+{
 public:
     PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu, ModbusClient* powermeter);
     ~PVPowerPlantFSM();
 
     // process possible events which might trigger a state transition
-    void update(GridLoadState gridState, int acInvSupply, float batteryVoltage);
+    void Update(GridLoadState gridState, int acInvSupply, float batteryVoltage);
 
 private:
-    State currentState;
-    std::unordered_map<State, std::unordered_map<Event, State>> transitionTable;
-    std::unordered_map<State, std::function<void()>> actionTable;
-    std::unordered_map<Event, EventCondition> eventConditions;
+    State m_currentState;
+    std::unordered_map<State, std::unordered_map<Event, State>> m_transitionTable;
+    std::unordered_map<State, std::function<void()>> m_actionTable;
+    std::unordered_map<Event, EventCondition> m_eventConditions;
 
     OpenDtuInterface* m_dtu;
     PsuController* m_psu;
@@ -71,22 +72,22 @@ private:
     int m_acInvToGridPower;
     float m_batteryVoltage;
 
-    void handleEvent(Event event);
+    void HandleEvent(Event event);
 
-    std::string getEventName(Event event);
-    std::string getStateName(State state);
+    std::string GetEventName(Event event);
+    std::string GetStateName(State state);
 
     // state entry actions //
-    void idleStateEntryAction();
-    void chargeStateEntryAction();
-    void dischargeStateEntryAction();
+    void IdleStateEntryAction();
+    void ChargeStateEntryAction();
+    void DischargeStateEntryAction();
 
     // event trigger conditions //
-    bool pvOverproduction();
-    bool highDemand();
-    bool batteryFull();
-    bool batteryLow();
+    bool PvOverproduction();
+    bool HighDemand();
+    bool BatteryFull();
+    bool BatteryLow();
 
-    void psuPowerRegulation();
-    float calculateCurrentBasedOnPower(float power, float batteryVoltage) const;
+    void PsuPowerRegulation();
+    float CalculateCurrentBasedOnPower(float power, float batteryVoltage) const;
 };

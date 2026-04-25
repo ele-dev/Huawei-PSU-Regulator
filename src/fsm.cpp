@@ -22,28 +22,28 @@ PVPowerPlantFSM::PVPowerPlantFSM(OpenDtuInterface* dtu, PsuController* psu, Modb
     m_modbusPM = powermeter;
 
     // initial state is IDLE
-    currentState = State::IDLE;
+    m_currentState = State::IDLE;
 
     // transition table defines available transitions for all states
-    transitionTable = {
+    m_transitionTable = {
         {State::IDLE, {{Event::PV_OVERPRODUCTION, State::CHARGING}, {Event::HIGH_DEMAND, State::DISCHARGING}}},
         {State::CHARGING, {{Event::BATTERY_FULL, State::IDLE}, {Event::HIGH_DEMAND, State::DISCHARGING}}},
         {State::DISCHARGING, {{Event::BATTERY_LOW, State::IDLE}, {Event::PV_OVERPRODUCTION, State::CHARGING}}}
     };
 
     // action table defines task to be executed just after a transition into a specific state
-    actionTable = {
-        {State::IDLE, std::bind(&PVPowerPlantFSM::idleStateEntryAction, this)},
-        {State::CHARGING, std::bind(&PVPowerPlantFSM::chargeStateEntryAction, this)},
-        {State::DISCHARGING, std::bind(&PVPowerPlantFSM::dischargeStateEntryAction, this)}
+    m_actionTable = {
+        {State::IDLE, std::bind(&PVPowerPlantFSM::IdleStateEntryAction, this)},
+        {State::CHARGING, std::bind(&PVPowerPlantFSM::ChargeStateEntryAction, this)},
+        {State::DISCHARGING, std::bind(&PVPowerPlantFSM::DischargeStateEntryAction, this)}
     };
 
     // event conditions defined by a boolean expression along with a time hysteresis
-    eventConditions = {
-        {Event::PV_OVERPRODUCTION, EventCondition(std::bind(&PVPowerPlantFSM::pvOverproduction, this), std::chrono::seconds(50))},
-        {Event::HIGH_DEMAND, EventCondition(std::bind(&PVPowerPlantFSM::highDemand, this), std::chrono::seconds(15))},
-        {Event::BATTERY_FULL, EventCondition(std::bind(&PVPowerPlantFSM::batteryFull, this), std::chrono::seconds(200))},
-        {Event::BATTERY_LOW, EventCondition(std::bind(&PVPowerPlantFSM::batteryLow, this), std::chrono::seconds(200))}
+    m_eventConditions = {
+        {Event::PV_OVERPRODUCTION, EventCondition(std::bind(&PVPowerPlantFSM::PvOverproduction, this), std::chrono::seconds(50))},
+        {Event::HIGH_DEMAND, EventCondition(std::bind(&PVPowerPlantFSM::HighDemand, this), std::chrono::seconds(15))},
+        {Event::BATTERY_FULL, EventCondition(std::bind(&PVPowerPlantFSM::BatteryFull, this), std::chrono::seconds(200))},
+        {Event::BATTERY_LOW, EventCondition(std::bind(&PVPowerPlantFSM::BatteryLow, this), std::chrono::seconds(200))}
     };
 }
 
@@ -52,15 +52,15 @@ PVPowerPlantFSM::~PVPowerPlantFSM()
     m_dtu = nullptr;
 }
 
-void PVPowerPlantFSM::update(GridLoadState gridState, int acInvSupply, float batteryVoltage)
+void PVPowerPlantFSM::Update(GridLoadState gridState, int acInvSupply, float batteryVoltage)
 {
     // first update internal measurement variables
     m_gridLoad = gridState.tasmotaPowerCmd;
     m_acChargePower = gridState.psuAcInputPower;
     m_acInvToGridPower = acInvSupply;
-    m_batteryVoltage = m_batteryVoltage;
+    m_batteryVoltage = batteryVoltage;
 
-    for (auto &[event, condition] : eventConditions)
+    for (auto &[event, condition] : m_eventConditions)
     {
         if (condition.condition())
         {
@@ -72,7 +72,7 @@ void PVPowerPlantFSM::update(GridLoadState gridState, int acInvSupply, float bat
             }
             else if (std::chrono::duration_cast<std::chrono::seconds>(now - condition.lastChecked) >= condition.hysteresis)
             {
-                handleEvent(event);
+                HandleEvent(event);
             }
         }
         else
@@ -82,7 +82,7 @@ void PVPowerPlantFSM::update(GridLoadState gridState, int acInvSupply, float bat
     }
 
     // do state dependant non-blocking tasks
-    switch(currentState)
+    switch(m_currentState)
     {
         case State::IDLE:
         {
@@ -94,7 +94,7 @@ void PVPowerPlantFSM::update(GridLoadState gridState, int acInvSupply, float bat
         case State::CHARGING:
         {
             // run one loop iteration of psu power regulator ...
-            psuPowerRegulation();
+            PsuPowerRegulation();
             break;
         }
 
@@ -106,30 +106,30 @@ void PVPowerPlantFSM::update(GridLoadState gridState, int acInvSupply, float bat
 
         default:
         {
-            logger.logMessage(LogLevel::WARNING, "[FSM] Current state is not defined");
+            logger.LogMessage(LogChannel::WARNING, "[FSM] Current state is not defined");
             break;
         }
     }
 }
 
 // central event handler for safe state transitions
-void PVPowerPlantFSM::handleEvent(Event event) {
-    auto transitions = transitionTable[currentState];
+void PVPowerPlantFSM::HandleEvent(Event event) {
+    auto transitions = m_transitionTable[m_currentState];
     if (transitions.find(event) != transitions.end()) {
 
         // transition into following state
-        logger.logMessage(LogLevel::INFO, "[FSM] !>> Event: " + getEventName(event));
-        currentState = transitions[event];
+        logger.LogMessage(LogChannel::INFO, "[FSM] !>> Event: " + GetEventName(event));
+        m_currentState = transitions[event];
 
         // execute state entry action
-        actionTable[currentState]();
+        m_actionTable[m_currentState]();
     } else {
-        logger.logMessage(LogLevel::INFO, "Event  (" + getEventName(event) + ") not defined for current state (" + getStateName(currentState) + ")");
+        logger.LogMessage(LogChannel::INFO, "Event  (" + GetEventName(event) + ") not defined for current state (" + GetStateName(m_currentState) + ")");
     }
 }
 
 // helper method to get a string representation of events
-std::string PVPowerPlantFSM::getEventName(Event event) 
+std::string PVPowerPlantFSM::GetEventName(Event event) 
 {
     switch(event) {
         case Event::PV_OVERPRODUCTION: return "PV Overprodution";
@@ -141,7 +141,7 @@ std::string PVPowerPlantFSM::getEventName(Event event)
 }
 
 // helper method to get a string representation of states
-std::string PVPowerPlantFSM::getStateName(State state) 
+std::string PVPowerPlantFSM::GetStateName(State state) 
 {
     switch(state) {
         case State::IDLE: return "IDLE";
@@ -152,57 +152,57 @@ std::string PVPowerPlantFSM::getStateName(State state)
 }
 
 // state entry actions (executed directly when entering new state) //
-void PVPowerPlantFSM::idleStateEntryAction()
+void PVPowerPlantFSM::IdleStateEntryAction()
 {
-    logger.logMessage(LogLevel::INFO, "[FSM] --> Entering Idle state ...");
+    logger.LogMessage(LogChannel::INFO, "[FSM] --> Entering Idle state ...");
 }
 
-void PVPowerPlantFSM::chargeStateEntryAction() 
+void PVPowerPlantFSM::ChargeStateEntryAction() 
 {
-    logger.logMessage(LogLevel::INFO, "[FSM] --> Entering Charging state ...");
-    m_dtu->disableDynamicPowerLimiter();
+    logger.LogMessage(LogChannel::INFO, "[FSM] --> Entering Charging state ...");
+    m_dtu->DisableDynamicPowerLimiter();
 
     // increase the polling rate for modbus powermeters (to regulate PSU properly)
-    m_modbusPM->increaseModbusPollingRate();
+    m_modbusPM->IncreaseModbusPollingRate();
 }
 
-void PVPowerPlantFSM::dischargeStateEntryAction() 
+void PVPowerPlantFSM::DischargeStateEntryAction() 
 {
-    logger.logMessage(LogLevel::INFO, "[FSM] --> Entering Discharging state ...");
-    m_dtu->enableDynamicPowerLimiter();
+    logger.LogMessage(LogChannel::INFO, "[FSM] --> Entering Discharging state ...");
+    m_dtu->EnableDynamicPowerLimiter();
 
     // decrease the polling rate for modbus powermeters (only sproradic updates suffice)
-    m_modbusPM->decreaseModbusPollingRate();
+    m_modbusPM->DecreaseModbusPollingRate();
 }
 
 // event conditions //
-bool PVPowerPlantFSM::pvOverproduction()
+bool PVPowerPlantFSM::PvOverproduction()
 {
     // demand is satisfied and inverter is not supplying additional power from battery
-    short minChargerPower = cfg.getMinChargePower();
-    if(m_gridLoad < -minChargerPower && m_acInvToGridPower == 0 && currentState != State::CHARGING) {
+    short minChargerPower = cfg.GetMinChargePower();
+    if(m_gridLoad < -minChargerPower && m_acInvToGridPower == 0 && m_currentState != State::CHARGING) {
         return true;
     }
     return false;
 }
 
-bool PVPowerPlantFSM::highDemand()
+bool PVPowerPlantFSM::HighDemand()
 {
     // demand is high and AC charger is not charging 
-    short minDischargePower = cfg.getMinChargePower();
-    if(m_gridLoad > (2 * minDischargePower) && m_batteryVoltage >= cfg.getOpenDtuStartDischargeVoltage() && m_acChargePower == 0 
-            && m_acInvToGridPower == 0 && currentState != State::DISCHARGING) {
+    short minDischargePower = cfg.GetMinChargePower();
+    if(m_gridLoad > (2 * minDischargePower) && m_batteryVoltage >= cfg.GetOpenDtuStartDischargeVoltage() && m_acChargePower == 0 
+            && m_acInvToGridPower == 0 && m_currentState != State::DISCHARGING) {
         return true;    
     }
     return false;
 }
 
-bool PVPowerPlantFSM::batteryFull()
+bool PVPowerPlantFSM::BatteryFull()
 {
     return false;
 }
 
-bool PVPowerPlantFSM::batteryLow()
+bool PVPowerPlantFSM::BatteryLow()
 {
     // demand is still high but inverter doesn't supply power (because battery is empty)
     /*
@@ -214,18 +214,18 @@ bool PVPowerPlantFSM::batteryLow()
     return false;
 }
 
-void PVPowerPlantFSM::psuPowerRegulation() 
+void PVPowerPlantFSM::PsuPowerRegulation() 
 {
     short error = 0;
 
     // calculate error (absolute difference from target value)
     // don't try to compensate for very small errors
-    error = cfg.getTargetGridPower() - m_gridLoad;
-    if(abs(error) < cfg.getRegulatorErrorThreshold()) {
+    error = cfg.GetTargetGridPower() - m_gridLoad;
+    if(abs(error) < cfg.GetRegulatorErrorThreshold()) {
         return;
     }
 
-    logger.logMessage(LogLevel::INFO, "[Regulator] Processing received power state: grid-load = " 
+    logger.LogMessage(LogChannel::INFO, "[Regulator] Processing received power state: grid-load = " 
     + std::to_string(m_gridLoad) + "W, deviation = " 
     + std::to_string(error) + "W, AC-charge = " 
     + std::to_string(m_acChargePower) + "W");
@@ -233,26 +233,26 @@ void PVPowerPlantFSM::psuPowerRegulation()
     short powerCmd = m_acChargePower + error;
 
     // set bounds for allowed power commands (min and max)
-    if(powerCmd > cfg.getMaxChargePower()) {
-        powerCmd = cfg.getMaxChargePower();
+    if(powerCmd > cfg.GetMaxChargePower()) {
+        powerCmd = cfg.GetMaxChargePower();
     }
 
-    if(powerCmd < cfg.getMinChargePower()) {
+    if(powerCmd < cfg.GetMinChargePower()) {
         powerCmd = 0;
     }
 
     // translate power command into max current command. use current output voltage for calculation
-    float maxCurrentCmd = this->calculateCurrentBasedOnPower(static_cast<float>(powerCmd), m_psu->getCurrentOutputVoltage());
+    float maxCurrentCmd = this->CalculateCurrentBasedOnPower(static_cast<float>(powerCmd), m_psu->GetCurrentOutputVoltage());
 
     // send max current command to the PSU and idle a short time 
-    m_psu->setMaxCurrent(maxCurrentCmd, false);
+    m_psu->SetMaxCurrent(maxCurrentCmd, false);
 
-    logger.logMessage(LogLevel::INFO, "[Regulator] Updated AC charge power target --> " + std::to_string(powerCmd) + "W");
+    logger.LogMessage(LogChannel::INFO, "[Regulator] Updated AC charge power target --> " + std::to_string(powerCmd) + "W");
 
-    sleep_for(milliseconds(cfg.getRegulatorIdleTime()));
+    sleep_for(milliseconds(cfg.GetRegulatorIdleTime()));
 }
 
-float PVPowerPlantFSM::calculateCurrentBasedOnPower(float power, float batteryVoltage) const 
+float PVPowerPlantFSM::CalculateCurrentBasedOnPower(float power, float batteryVoltage) const 
 {
     // Determine expected AC/DC conversion efficiency based on power command
     float eff = 0.0f;
@@ -268,21 +268,21 @@ float PVPowerPlantFSM::calculateCurrentBasedOnPower(float power, float batteryVo
 
     // ensure battery voltage value is in valid range to prevent misscalculations
     if(batteryVoltage < 47.0f) {
-        logger.logMessage(LogLevel::WARNING, "[Regulator] Invalid battery voltage measurement detected");
+        logger.LogMessage(LogChannel::WARNING, "[Regulator] Invalid battery voltage measurement detected");
         batteryVoltage = 47.0f;
     }
     if(batteryVoltage > 53.5f) {
-        logger.logMessage(LogLevel::WARNING, "[Regulator] Invalid battery voltage measurement detected");
+        logger.LogMessage(LogChannel::WARNING, "[Regulator] Invalid battery voltage measurement detected");
         batteryVoltage = 53.5f;
     }
 
     // calculate and round the current 
-    float result = round(0.9876f * eff * power / batteryVoltage);
+    float result = Round(0.9876f * eff * power / batteryVoltage);
 
     // also ensure the calculated current aligns with the configured maximum power limits
-    float maxAllowedChargingCurrent = round(cfg.getMaxChargePower() / 47.0f);
+    float maxAllowedChargingCurrent = Round(cfg.GetMaxChargePower() / 47.0f);
     if(result > maxAllowedChargingCurrent) {
-        logger.logMessage(LogLevel::WARNING, "[Regulator] Allowed maximum charge current (" + float2String(maxAllowedChargingCurrent, 2) + "A) reached");
+        logger.LogMessage(LogChannel::WARNING, "[Regulator] Allowed maximum charge current (" + Float2String(maxAllowedChargingCurrent, 2) + "A) reached");
         result = maxAllowedChargingCurrent;
     }
 

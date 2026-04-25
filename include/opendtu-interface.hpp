@@ -25,20 +25,20 @@ public:
     ~OpenDtuInterface();
 
     // control methods
-    void enableDynamicPowerLimiter();
-    void disableDynamicPowerLimiter();
-    void fetchCurrentState();
+    void EnableDynamicPowerLimiter();
+    void DisableDynamicPowerLimiter();
+    void FetchCurrentState();
 
     // measurement getters 
-    float getBatteryToGridPower() const;
-    float getBatteryVoltage() const;
+    float GetBatteryToGridPower() const;
+    float GetBatteryVoltage() const;
     // ...
 
 private:
-    void setupCurlHandles();
-    void fetchInitialDPLState();
-    std::string sendGetRequest(const std::string &url) const;
-    void sendPostRequest(const std::string &url, const std::string &jsonData) const;
+    void SetupCurlHandles();
+    void FetchInitialDPLState();
+    std::string SendGetRequest(const std::string &url) const;
+    void SendPostRequest(const std::string &url, const std::string &jsonData) const;
 
     CURL *m_curl_get_handle;
     CURL *m_curl_post_handle;

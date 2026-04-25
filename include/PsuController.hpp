@@ -91,22 +91,22 @@ public:
     PsuController();
     ~PsuController();
 
-    bool setup(const char*);
-    void shutdown();
-    void printParams() const;
-    bool setMaxVoltage(float, bool);
-    bool setMaxCurrent(float, bool);
-    bool requestStatusData();
+    bool Setup(const char*);
+    void Shutdown();
+    void PrintParams() const;
+    bool SetMaxVoltage(float, bool);
+    bool SetMaxCurrent(float, bool);
+    bool RequestStatusData();
 
     // getters //
-    float getCurrentInputPower() const;
-    float getCurrentOutputVoltage() const;
-    float getCurrentOutputCurrent() const;
+    float GetCurrentInputPower() const;
+    float GetCurrentOutputVoltage() const;
+    float GetCurrentOutputCurrent() const;
 
 private:
     // helper methods //
-    bool sendCanFrame(struct can_frame);
-    void updateLocalParams(uint8_t*);
-    void processAckFrame(uint8_t*);
-    bool initSlotDetect();
+    bool SendCanFrame(struct can_frame);
+    void UpdateLocalParams(uint8_t*);
+    void ProcessAckFrame(uint8_t*);
+    bool InitSlotDetect();
 };

@@ -40,14 +40,14 @@ class ModbusClient
         ModbusClient();
         ~ModbusClient();
 
-        bool setup(const char* serverIp, const int serverPort);
-        void closeup();
+        bool Setup(const char* serverIp, const int serverPort);
+        void Closeup();
 
         // setter functions for in-/decreasing modbus polling rate from outside
-        void increaseModbusPollingRate();
-        void decreaseModbusPollingRate();
+        void IncreaseModbusPollingRate();
+        void DecreaseModbusPollingRate();
 
     private:
-        bool enableTcpKeepalive(int sock);
-        float readInputRegisterAsFloat32(int startRegAddr) const;
+        bool EnableTcpKeepalive(int sock);
+        float ReadInputRegisterAsFloat32(int startRegAddr) const;
 };

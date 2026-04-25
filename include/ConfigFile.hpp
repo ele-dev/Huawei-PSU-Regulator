@@ -44,37 +44,37 @@ public:
     ConfigFile(std::string);
     ~ConfigFile();
 
-    bool loadConfig();
-    void printConfig() const;
+    bool LoadConfig();
+    void PrintConfig() const;
 
     // Getters // 
-    const char* getCanInterfaceName() const;
-    short getUdpPort() const;
-    short getMinChargePower() const;
-    short getMaxChargePower() const;
-    short getTargetGridPower() const;
-    int getRegulatorErrorThreshold() const;
-    int getRegulatorIdleTime() const;
-    float getChargerAbsorptionVoltage() const;
-    bool isScheduledExitEnabled() const;
-    int getScheduledExitHour() const;
-    int getScheduledExitMinute() const;
-    bool isSlotDetectControlEnabled() const;
-    int getSlotDetectKeepAliveTime() const;
+    const char* GetCanInterfaceName() const;
+    short GetUdpPort() const;
+    short GetMinChargePower() const;
+    short GetMaxChargePower() const;
+    short GetTargetGridPower() const;
+    int GetRegulatorErrorThreshold() const;
+    int GetRegulatorIdleTime() const;
+    float GetChargerAbsorptionVoltage() const;
+    bool IsScheduledExitEnabled() const;
+    int GetScheduledExitHour() const;
+    int GetScheduledExitMinute() const;
+    bool IsSlotDetectControlEnabled() const;
+    int GetSlotDetectKeepAliveTime() const;
 
-    std::string getOpenDtuHost() const;
-    std::string getOpenDtuAdminUser() const;
-    std::string getOpenDtuAdminPassword() const;
-    std::string getOpenDtuBatteryInverterId() const;
-    float getOpenDtuStartDischargeVoltage() const;
-    float getOpenDtuStopDischargeVoltage() const;
+    std::string GetOpenDtuHost() const;
+    std::string GetOpenDtuAdminUser() const;
+    std::string GetOpenDtuAdminPassword() const;
+    std::string GetOpenDtuBatteryInverterId() const;
+    float GetOpenDtuStartDischargeVoltage() const;
+    float GetOpenDtuStopDischargeVoltage() const;
 
-    const char* getPowerMeterModbusIp() const;
-    short getPowerMeterModbusPort() const;
-    int getPowerMeterModbusPollingPeriod() const;
+    const char* GetPowerMeterModbusIp() const;
+    short GetPowerMeterModbusPort() const;
+    int GetPowerMeterModbusPollingPeriod() const;
 
 private:
-    void parseLine(std::string);
-    std::vector<std::string> split(const std::string&, char);
+    void ParseLine(std::string);
+    std::vector<std::string> Split(const std::string&, char);
 
 };

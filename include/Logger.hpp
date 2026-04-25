@@ -15,8 +15,8 @@
 #include <sstream>
 #include <mutex>
 
-// define the available log levels (ordered by severity)
-enum class LogLevel { DEBUG, INFO, WARNING, ERROR };
+// define the available log channels (ordered by verbosity)
+enum class LogChannel { DEBUG, INFO, WARNING, ERROR };
 
 class Logger 
 {
@@ -27,8 +27,8 @@ public:
     Logger(const char* logfilename);
     ~Logger();
 
-    void logMessage(LogLevel level, const std::string& message);
+    void LogMessage(LogChannel level, const std::string& message);
 
 private:
-    std::string getCurrentTimestamp() const;
+    std::string GetCurrentTimestamp() const;
 };

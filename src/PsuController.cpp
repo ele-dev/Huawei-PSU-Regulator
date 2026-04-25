@@ -20,17 +20,17 @@ PsuController::PsuController() {
 PsuController::~PsuController() {}
 
 // public methods // 
-bool PsuController::setup(const char* interfaceName) {
+bool PsuController::Setup(const char* interfaceName) {
 	// initialize the slot detect control
-	if(!initSlotDetect()) {
-		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to init slot detect control");
+	if(!InitSlotDetect()) {
+		logger.LogMessage(LogChannel::ERROR, "[PSU] Failed to init slot detect control");
 		return false;
 	}
 
 	// create can socket
 	m_canSocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 	if(m_canSocket < 0) {
-		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to create CAN socket");
+		logger.LogMessage(LogChannel::ERROR, "[PSU] Failed to create CAN socket");
 		return false;
 	}
 
@@ -45,7 +45,7 @@ bool PsuController::setup(const char* interfaceName) {
 
 	// bind address to interface
 	if(bind(m_canSocket, (struct sockaddr*)&m_addr, sizeof(m_addr)) < 0) {
-		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to bind CAN socket");
+		logger.LogMessage(LogChannel::ERROR, "[PSU] Failed to bind CAN socket");
 		return false;
 	}
 
@@ -58,13 +58,13 @@ bool PsuController::setup(const char* interfaceName) {
 		auto lastStatusRequestTime = currentTime, lastCurrentCommandRepeatTime = currentTime;
 		milliseconds timeElapsed;
 		
-		logger.logMessage(LogLevel::DEBUG, "[PSU-thread] worker thread running ...");
+		logger.LogMessage(LogChannel::DEBUG, "[PSU-thread] worker thread running ...");
 
 		// send initial volatage and current commands, don't output power by default
-		ptr->setMaxVoltage(cfg.getChargerAbsorptionVoltage(), false);		// online mode
+		ptr->SetMaxVoltage(cfg.GetChargerAbsorptionVoltage(), false);		// online mode
 
 		// send first request for status report
-		ptr->requestStatusData();
+		ptr->RequestStatusData();
 
 		// repeat as long as CAN socket is valid
 		while(ptr->m_threadRunning == true) {
@@ -73,7 +73,7 @@ bool PsuController::setup(const char* interfaceName) {
 			// read in message from CAN bus
 			int nbytes = read(ptr->m_canSocket, &receivedCanFrame, sizeof(can_frame));
 			if (nbytes < 0) {
-				logger.logMessage(LogLevel::WARNING, "[PSU-thread] Issue when reading can message frame");
+				logger.LogMessage(LogChannel::WARNING, "[PSU-thread] Issue when reading can message frame");
 				continue;
 			}
 
@@ -81,7 +81,7 @@ bool PsuController::setup(const char* interfaceName) {
 			switch (receivedCanFrame.can_id & 0x1FFFFFFF) {
 				// status report message
 				case 0x1081407F:
-					ptr->updateLocalParams((uint8_t*)&receivedCanFrame.data);
+					ptr->UpdateLocalParams((uint8_t*)&receivedCanFrame.data);
 					break;
 
 				// ...
@@ -93,7 +93,7 @@ bool PsuController::setup(const char* interfaceName) {
 				// command acknowledge message
 				case 0x1081807E:
 					// Acknowledgement //
-					ptr->processAckFrame((uint8_t*)&receivedCanFrame.data);
+					ptr->ProcessAckFrame((uint8_t*)&receivedCanFrame.data);
 					break;
 
 				// unknown message type
@@ -106,7 +106,7 @@ bool PsuController::setup(const char* interfaceName) {
 			currentTime = steady_clock::now();
 			timeElapsed = duration_cast<milliseconds>(currentTime - lastStatusRequestTime);
 			if(timeElapsed.count() > 1000) {
-				ptr->requestStatusData();
+				ptr->RequestStatusData();
 				lastStatusRequestTime = steady_clock::now();
 			}
 
@@ -114,17 +114,17 @@ bool PsuController::setup(const char* interfaceName) {
 			currentTime = steady_clock::now();
 			timeElapsed = duration_cast<milliseconds>(currentTime - lastCurrentCommandRepeatTime);
 			if(timeElapsed.count() > 5000) {
-				ptr->setMaxCurrent(ptr->m_lastCurrentCmd, false);
+				ptr->SetMaxCurrent(ptr->m_lastCurrentCmd, false);
 				if(ptr->m_lastCurrentCmd == 0.0f) {
 					// tick the slot detect keep alive timer
 					ptr->m_secondsSinceLastCharge += static_cast<unsigned int>(timeElapsed.count() / 1000);
-					if(ptr->m_secondsSinceLastCharge >= cfg.getSlotDetectKeepAliveTime()) {
+					if(ptr->m_secondsSinceLastCharge >= cfg.GetSlotDetectKeepAliveTime()) {
 						// turn off slot detect to enter stand by mode for power saving
 						#ifdef ENABLE_GPIO
-							if(cfg.isSlotDetectControlEnabled()) {
+							if(cfg.IsSlotDetectControlEnabled()) {
 								if(digitalRead(SD_PIN) == HIGH) {
 									digitalWrite(SD_PIN, LOW);
-									logger.logMessage(LogLevel::INFO, "[PSU-thread] Turn off slot detect --> standby mode");
+									logger.LogMessage(LogChannel::INFO, "[PSU-thread] Turn off slot detect --> standby mode");
 								}
 							}
 						#endif
@@ -138,18 +138,18 @@ bool PsuController::setup(const char* interfaceName) {
 				lastCurrentCommandRepeatTime = steady_clock::now();
 			}
 		}
-		logger.logMessage(LogLevel::DEBUG, "[PSU-thread] closup --> finish tread now");
+		logger.LogMessage(LogChannel::DEBUG, "[PSU-thread] closup --> finish tread now");
 	}, this);
 
 	return true;
 }
 
-void PsuController::shutdown() {
+void PsuController::Shutdown() {
 	// disable slot detect (on raspberry pi only)
 	#ifdef ENABLE_GPIO
 		if(digitalRead(SD_PIN) == HIGH) {
 			digitalWrite(SD_PIN, LOW);
-			logger.logMessage(LogLevel::INFO, "[PSU] Slot detect disabled before exit");
+			logger.LogMessage(LogChannel::INFO, "[PSU] Slot detect disabled before exit");
 		}
 	#endif
 
@@ -159,11 +159,11 @@ void PsuController::shutdown() {
 
 	// close the CAN socket
 	if(close(m_canSocket) < 0) {
-		logger.logMessage(LogLevel::WARNING, "[PSU] Could not close CAN socket. Not created at all?");
+		logger.LogMessage(LogChannel::WARNING, "[PSU] Could not close CAN socket. Not created at all?");
 	}
 }
 
-void PsuController::printParams() const {
+void PsuController::PrintParams() const {
 	std::cout << std::endl;
 	printf("Input Voltage %.02fV @ %.02fHz\n", m_rectifierParams.input_voltage, m_rectifierParams.input_frequency);
 	printf("Input Current %.02fA\n", m_rectifierParams.input_current);
@@ -181,7 +181,7 @@ void PsuController::printParams() const {
 }
 
 // Does not block
-bool PsuController::setMaxVoltage(float voltage, bool nonvolatile) {
+bool PsuController::SetMaxVoltage(float voltage, bool nonvolatile) {
 	struct can_frame dataFrameToSend;
 	uint16_t value = voltage * 1024;		
 	uint8_t volatilityFlag;
@@ -203,15 +203,15 @@ bool PsuController::setMaxVoltage(float voltage, bool nonvolatile) {
 	dataFrameToSend.data[7] = value & 0xFF;				// then the lower one
 
 	// send the message frame
-	if(!sendCanFrame(dataFrameToSend)) {
-		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to send voltage command");
+	if(!SendCanFrame(dataFrameToSend)) {
+		logger.LogMessage(LogChannel::ERROR, "[PSU] Failed to send voltage command");
 		return false;
 	}
 	return true;
 }
 
 // Does not block
-bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
+bool PsuController::SetMaxCurrent(float current, bool nonvolatile) {
 	struct can_frame dataFrameToSend;
 	uint16_t value = current * MAX_CURRENT_MULTIPLIER;
 	uint8_t volatilityFlag;
@@ -233,24 +233,24 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 	dataFrameToSend.data[7] = value & 0xFF;					// then the lower one
 
 	// send the message frame
-	if(!sendCanFrame(dataFrameToSend)) {
+	if(!SendCanFrame(dataFrameToSend)) {
 		// std::cerr << "Failed to send current command!" << std::endl;
-		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to send current command");
+		logger.LogMessage(LogChannel::ERROR, "[PSU] Failed to send current command");
 		return false;
 	}
 
 	// reset command acknowledgement flag if target current has changed
 	if(current != m_lastCurrentCmd) {
 		m_cmdAckFlag = false;
-		logger.logMessage(LogLevel::DEBUG, "[PSU] Sent new current command " + float2String(round(current), 2) + "A");
+		logger.LogMessage(LogChannel::DEBUG, "[PSU] Sent new current command " + Float2String(Round(current), 2) + "A");
 
 		// reenable slot detect after standby periods (on raspberry pi only)
 		if(m_lastCurrentCmd == 0.0f && current > 0.0f) {
 			#ifdef ENABLE_GPIO
-				if(cfg.isSlotDetectControlEnabled()) {
+				if(cfg.IsSlotDetectControlEnabled()) {
 					if(digitalRead(SD_PIN) == LOW) {
 						digitalWrite(SD_PIN, HIGH);
-						logger.logMessage(LogLevel::INFO, "[PSU] Slot detect (re)enabled");
+						logger.LogMessage(LogChannel::INFO, "[PSU] Slot detect (re)enabled");
 					}	
 				}
 			#endif
@@ -264,7 +264,7 @@ bool PsuController::setMaxCurrent(float current, bool nonvolatile) {
 }
 
 // Does not block
-bool PsuController::requestStatusData() {
+bool PsuController::RequestStatusData() {
 	struct can_frame requestFrame;
 
 	// construct CAN message frame
@@ -281,28 +281,28 @@ bool PsuController::requestStatusData() {
 	requestFrame.data[7] = 0;
 
 	// send the message frame
-	if(!sendCanFrame(requestFrame)) {
-		logger.logMessage(LogLevel::ERROR, "[PSU] Failed to send status request command");
+	if(!SendCanFrame(requestFrame)) {
+		logger.LogMessage(LogChannel::ERROR, "[PSU] Failed to send status request command");
 		return false;
 	}
 
 	return true;
 }
 
-float PsuController::getCurrentInputPower() const {
+float PsuController::GetCurrentInputPower() const {
 	return m_rectifierParams.input_power;
 }
 
-float PsuController::getCurrentOutputVoltage() const {
+float PsuController::GetCurrentOutputVoltage() const {
 	return m_rectifierParams.output_voltage;
 }
 
-float PsuController::getCurrentOutputCurrent() const {
+float PsuController::GetCurrentOutputCurrent() const {
 	return m_rectifierParams.output_current;
 }
 
 // generic helper method for sending out CAN frames
-bool PsuController::sendCanFrame(struct can_frame frame) {
+bool PsuController::SendCanFrame(struct can_frame frame) {
 
 	// write out frame to the can bus
 	if (write(m_canSocket, &frame, sizeof(can_frame)) != sizeof(can_frame)) {
@@ -312,7 +312,7 @@ bool PsuController::sendCanFrame(struct can_frame frame) {
 }
 
 // processes a received status frame from the PSU
-void PsuController::updateLocalParams(uint8_t *frame) {
+void PsuController::UpdateLocalParams(uint8_t *frame) {
 	// decode and store value in payload of message frame
 	uint32_t value = __builtin_bswap32(*(uint32_t *)&frame[4]);
 
@@ -379,9 +379,7 @@ void PsuController::updateLocalParams(uint8_t *frame) {
 		case R48xx_DATA_OUTPUT_CURRENT:			// --> usually received at last
 		{
 			m_rectifierParams.output_current = value / 1024.0f;
-			#ifdef _VERBOSE_OUTPUT
-				this->printParams();
-			#endif
+			// this->PrintParams();
 			break;
 		}
 
@@ -407,7 +405,7 @@ void PsuController::updateLocalParams(uint8_t *frame) {
 }
 
 // process an acknowledge frame from the PSU
-void PsuController::processAckFrame(uint8_t *frame) {
+void PsuController::ProcessAckFrame(uint8_t *frame) {
 	// decode error flag and 
 	bool error = frame[0] & 0x20;
 	uint32_t value = __builtin_bswap32(*(uint32_t*)&frame[4]);
@@ -415,27 +413,27 @@ void PsuController::processAckFrame(uint8_t *frame) {
 	switch (frame[1]) {
 		case 0x00:
 		{
-			float voltageAck = round(value / 1024.0f);
-			std::string msg = std::string(error ? "Error" : "Success") + " setting online voltage to " + float2String(voltageAck, 2) + "V";
-			logger.logMessage(LogLevel::DEBUG, msg);
+			float voltageAck = Round(value / 1024.0f);
+			std::string msg = std::string(error ? "Error" : "Success") + " setting online voltage to " + Float2String(voltageAck, 2) + "V";
+			logger.LogMessage(LogChannel::DEBUG, msg);
 			// printf("%s setting online voltage to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
 			break;
 		}
 			
 		case 0x01:
 		{
-			float voltageAck = round(value / 1024.0f);
-			std::string msg = std::string(error ? "Error" : "Success") + " setting non-volatile (offline) voltage to " + float2String(voltageAck, 2) + "V";
-			logger.logMessage(LogLevel::DEBUG, msg);
+			float voltageAck = Round(value / 1024.0f);
+			std::string msg = std::string(error ? "Error" : "Success") + " setting non-volatile (offline) voltage to " + Float2String(voltageAck, 2) + "V";
+			logger.LogMessage(LogChannel::DEBUG, msg);
 			// printf("%s setting non-volatile (offline) voltage to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
 			break;
 		}
 			
 		case 0x02:
 		{
-			float voltageAck = round(value / 1024.0f);
-			std::string msg = std::string(error ? "Error" : "Success") + " setting overvoltage protection to " + float2String(voltageAck, 2) + "V";
-			logger.logMessage(LogLevel::DEBUG, msg);
+			float voltageAck = Round(value / 1024.0f);
+			std::string msg = std::string(error ? "Error" : "Success") + " setting overvoltage protection to " + Float2String(voltageAck, 2) + "V";
+			logger.LogMessage(LogChannel::DEBUG, msg);
 			// printf("%s setting overvoltage protection to %.02fV\n", error ? "Error" : "Success", value / 1024.0);
 			break;
 		}
@@ -444,8 +442,8 @@ void PsuController::processAckFrame(uint8_t *frame) {
 		{
 			float currentAck = static_cast<float>(value) / MAX_CURRENT_MULTIPLIER;
 			if(m_cmdAckFlag == false && currentAck == m_lastCurrentCmd) {
-				std::string msg = std::string(error ? "Error" : "Success") + " setting online current to " + float2String(currentAck, 2) + "A";
-				logger.logMessage(LogLevel::DEBUG, msg);
+				std::string msg = std::string(error ? "Error" : "Success") + " setting online current to " + Float2String(currentAck, 2) + "A";
+				logger.LogMessage(LogChannel::DEBUG, msg);
 				// printf("%s setting online current to %.02fA\n", error ? "Error" : "Success", currentAck);
 				m_cmdAckFlag = true;
 			}
@@ -455,33 +453,33 @@ void PsuController::processAckFrame(uint8_t *frame) {
 		case 0x04:
 		{
 			float currentAck = static_cast<float>(value) / MAX_CURRENT_MULTIPLIER;
-			std::string msg = std::string(error ? "Error" : "Success") + " setting non-volatile (offline) current to " + float2String(currentAck, 2) + "A";
-			logger.logMessage(LogLevel::DEBUG, msg);
+			std::string msg = std::string(error ? "Error" : "Success") + " setting non-volatile (offline) current to " + Float2String(currentAck, 2) + "A";
+			logger.LogMessage(LogChannel::DEBUG, msg);
 			// printf("%s setting non-volatile (offline) current to %.02fA\n", error ? "Error" : "Success", static_cast<float>(value) / MAX_CURRENT_MULTIPLIER);
 			break;
 		}
 			
 		default:
 		{
-			logger.logMessage(LogLevel::WARNING, "Setting unknown paramater");
+			logger.LogMessage(LogChannel::WARNING, "Setting unknown paramater");
 			// printf("%s setting unknown parameter (0x%02X)\n", error ? "Error" : "Success", frame[1]);
 		}
 	}
 }
 
 // setup wiringpi for direct GPIO interfacing (on raspberry pi only)
-bool PsuController::initSlotDetect() {
+bool PsuController::InitSlotDetect() {
 	#ifdef ENABLE_GPIO
 		wiringPiSetupGpio();
 		pinMode(SD_PIN, OUTPUT);
 
 		// turn off slot detect at application startup if feature is enabled
-		if(cfg.isSlotDetectControlEnabled()) {
+		if(cfg.IsSlotDetectControlEnabled()) {
 			digitalWrite(SD_PIN, LOW);
 		} else {
 			digitalWrite(SD_PIN, HIGH);		// when sd control disabled just turn on once 
 		}
-		logger.logMessage(LogLevel::INFO, "[PSU] Slot detect initialized");
+		logger.LogMessage(LogChannel::INFO, "[PSU] Slot detect initialized");
 	#endif
 
 	return true;

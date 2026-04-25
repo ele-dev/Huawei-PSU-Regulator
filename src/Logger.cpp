@@ -7,33 +7,33 @@
 
 Logger::Logger(const char* logfilename) {
     this->m_logFile.open(logfilename, std::ios_base::app);
-    this->logMessage(LogLevel::INFO, "-------------------- APPLICATION LAUNCH --------------------");
+    this->LogMessage(LogChannel::INFO, "-------------------- APPLICATION LAUNCH --------------------");
 }
 
 Logger::~Logger() {
     this->m_logFile.close();
 }
 
-void Logger::logMessage(LogLevel level, const std::string& message) {
+void Logger::LogMessage(LogChannel level, const std::string& message) {
     // lock the mutex to ensure thread safety
     std::lock_guard<std::mutex> lock(this->m_logMutex);
 
     // Get the current timestamp
-    std::string timestamp = getCurrentTimestamp();
+    std::string timestamp = GetCurrentTimestamp();
 
     // Convert log level enum to string
     std::string logLevelStr;
     switch (level) {
-        case LogLevel::DEBUG:
+        case LogChannel::DEBUG:
             logLevelStr = "DEBUG";
             break;
-        case LogLevel::INFO:
+        case LogChannel::INFO:
             logLevelStr = "INFO";
             break;
-        case LogLevel::WARNING:
+        case LogChannel::WARNING:
             logLevelStr = "WARNING";
             break;
-        case LogLevel::ERROR:
+        case LogChannel::ERROR:
             logLevelStr = "ERROR";
             break;
         default:
@@ -56,7 +56,7 @@ void Logger::logMessage(LogLevel level, const std::string& message) {
     }
 }
 
-std::string Logger::getCurrentTimestamp() const {
+std::string Logger::GetCurrentTimestamp() const {
     using namespace std::chrono;
 
     // Get current time as time_point

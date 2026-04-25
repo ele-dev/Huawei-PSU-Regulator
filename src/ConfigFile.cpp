@@ -38,7 +38,7 @@ ConfigFile::ConfigFile(std::string filename) {
 ConfigFile::~ConfigFile() {}
 
 // tries to open file. returns false on failure
-bool ConfigFile::loadConfig() {
+bool ConfigFile::LoadConfig() {
     // attempt to open config file from filesystem
     std::ifstream fileIn(m_fileName.c_str(), std::ifstream::in);
     if(!fileIn.is_open()) {
@@ -56,7 +56,7 @@ bool ConfigFile::loadConfig() {
             continue;
 
         // parse line 
-        parseLine(line);
+        ParseLine(line);
     }
 
     // close file stream
@@ -66,7 +66,7 @@ bool ConfigFile::loadConfig() {
 }
 
 // method for printing all config variables to the console
-void ConfigFile::printConfig() const {
+void ConfigFile::PrintConfig() const {
     std::cout << "\nConfig Variables:" << std::endl;
     std::cout << "UDP Listener Port:           " << m_udpListenerPort << std::endl;
     std::cout << "CAN interface:               " << m_canInterfaceName << std::endl;
@@ -92,16 +92,16 @@ void ConfigFile::printConfig() const {
 }
 
 // method for parsing lines of the config file
-void ConfigFile::parseLine(std::string line) {
+void ConfigFile::ParseLine(std::string line) {
     // remove remaining whitespaces from the line
     line.erase(std::remove_if(line.begin(), line.end(), ::isspace), line.end());
 
     // split string into key value pair with : as delimiter
-    std::vector<std::string> pair = split(line, ':');
+    std::vector<std::string> pair = Split(line, ':');
 
     if(pair.size() != 2) {
         // std::cerr << "[Config] Invalid line in config file!" << std::endl;
-        logger.logMessage(LogLevel::ERROR, "[Config] Invalid line in config file");
+        logger.LogMessage(LogChannel::ERROR, "[Config] Invalid line in config file");
         return;
     }
 
@@ -130,24 +130,24 @@ void ConfigFile::parseLine(std::string line) {
             m_scheduledExitHour = stoi(value);
             if(m_scheduledExitHour < 0) {
                 // std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
-                logger.logMessage(LogLevel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
+                logger.LogMessage(LogChannel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
                 m_scheduledExitHour = 0;
             }
             if(m_scheduledExitHour > 23) {
                 // std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
-                logger.logMessage(LogLevel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
+                logger.LogMessage(LogChannel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
                 m_scheduledExitHour = 23;
             }
         } else if(key == "scheduled-exit-minute") {
             m_scheduledExitMinute = stoi(value);
             if(m_scheduledExitMinute < 0) {
                 // std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
-                logger.logMessage(LogLevel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
+                logger.LogMessage(LogChannel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
                 m_scheduledExitMinute = 0;
             }
             if(m_scheduledExitMinute > 59) {
                 // std::cerr << "fix your entries for scheduled exit time in the config.txt file!" << std::endl;
-                logger.logMessage(LogLevel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
+                logger.LogMessage(LogChannel::WARNING, "[Config] Fix your entries for scheduled exit time in the config.txt file");
                 m_scheduledExitMinute = 59;
             }
         } else if(key == "slotdetect-control-enabled") {
@@ -157,7 +157,7 @@ void ConfigFile::parseLine(std::string line) {
             // must be at least 10 seconds long
             if(m_slotDetectKeepAliveTime < 10) {
                 // std::cerr << "slot detect keep alive time must be at least 10 seconds!" << std::endl;
-                logger.logMessage(LogLevel::WARNING, "[Config] Slot detect keep alive time must be at least 10 seconds");
+                logger.LogMessage(LogChannel::WARNING, "[Config] Slot detect keep alive time must be at least 10 seconds");
                 m_slotDetectKeepAliveTime = SD_KEEP_ALIVE_TIME;
             }
         } else if (key == "opendtu-hostname") {
@@ -180,16 +180,16 @@ void ConfigFile::parseLine(std::string line) {
             m_powerMeterModbusPollingPeriod = stoi(value);
         } else {
             // std::cerr << "[Config] Invalid config variable named " << key << std::endl;
-            logger.logMessage(LogLevel::WARNING, "[Config] Invalid config variable named \'" + key + "\'");
+            logger.LogMessage(LogChannel::WARNING, "[Config] Invalid config variable named \'" + key + "\'");
         }
     } catch(...) {
         // std::cerr << "Exception catched while parsing config file!" << std::endl;
-        logger.logMessage(LogLevel::ERROR, "[Config] Exception catched while parsing config file");
+        logger.LogMessage(LogChannel::ERROR, "[Config] Exception catched while parsing config file");
     }
 }
 
 // helper function for a basic string split operation
-std::vector<std::string> ConfigFile::split(const std::string &text, char sep) {
+std::vector<std::string> ConfigFile::Split(const std::string &text, char sep) {
     std::vector<std::string> tokens;
     std::size_t start = 0, end = 0;
     while ((end = text.find(sep, start)) != std::string::npos) {
@@ -201,90 +201,90 @@ std::vector<std::string> ConfigFile::split(const std::string &text, char sep) {
 }
 
 // Getters //
-const char* ConfigFile::getCanInterfaceName() const {
+const char* ConfigFile::GetCanInterfaceName() const {
     return m_canInterfaceName.c_str();
 }
 
-short ConfigFile::getUdpPort() const {
+short ConfigFile::GetUdpPort() const {
     return m_udpListenerPort;
 }
 
-short ConfigFile::getMinChargePower() const {
+short ConfigFile::GetMinChargePower() const {
     return m_minChargePower;
 }
 
-short ConfigFile::getMaxChargePower() const {
+short ConfigFile::GetMaxChargePower() const {
     return m_maxChargePower;
 }
 
-short ConfigFile::getTargetGridPower() const {
+short ConfigFile::GetTargetGridPower() const {
     return m_targetGridPower;
 }
 
-int ConfigFile::getRegulatorErrorThreshold() const {
+int ConfigFile::GetRegulatorErrorThreshold() const {
     return m_regulatorErrorThreshold;
 }
 
-int ConfigFile::getRegulatorIdleTime() const {
+int ConfigFile::GetRegulatorIdleTime() const {
     return m_regulatorIdleTime;
 }
 
-float ConfigFile::getChargerAbsorptionVoltage() const {
+float ConfigFile::GetChargerAbsorptionVoltage() const {
     return m_chargerAbsorptionVoltage;
 }
 
-bool ConfigFile::isScheduledExitEnabled() const {
+bool ConfigFile::IsScheduledExitEnabled() const {
     return m_scheduledExitEnabled;
 }
 
-int ConfigFile::getScheduledExitHour() const {
+int ConfigFile::GetScheduledExitHour() const {
     return m_scheduledExitHour;
 }
 
-int ConfigFile::getScheduledExitMinute() const {
+int ConfigFile::GetScheduledExitMinute() const {
     return m_scheduledExitMinute;
 }
 
-bool ConfigFile::isSlotDetectControlEnabled() const {
+bool ConfigFile::IsSlotDetectControlEnabled() const {
     return m_slotDetectCtlEnabled;
 }
 
-int ConfigFile::getSlotDetectKeepAliveTime() const {
+int ConfigFile::GetSlotDetectKeepAliveTime() const {
     return m_slotDetectKeepAliveTime;
 }
 
-std::string ConfigFile::getOpenDtuHost() const {
+std::string ConfigFile::GetOpenDtuHost() const {
     return m_openDtuHost;
 }
 
-std::string ConfigFile::getOpenDtuAdminUser() const {
+std::string ConfigFile::GetOpenDtuAdminUser() const {
     return m_openDtuAdminUser;
 }
 
-std::string ConfigFile::getOpenDtuAdminPassword() const {
+std::string ConfigFile::GetOpenDtuAdminPassword() const {
     return m_openDtuAdminPass;
 }
 
-std::string ConfigFile::getOpenDtuBatteryInverterId() const {
+std::string ConfigFile::GetOpenDtuBatteryInverterId() const {
     return m_openDtuBatteryInvId;
 }
 
-float ConfigFile::getOpenDtuStartDischargeVoltage() const {
+float ConfigFile::GetOpenDtuStartDischargeVoltage() const {
     return m_openDtuStartDischargeVoltage;
 }
 
-float ConfigFile::getOpenDtuStopDischargeVoltage() const {
+float ConfigFile::GetOpenDtuStopDischargeVoltage() const {
     return m_openDtuStopDischargeVoltage;
 }
 
-const char* ConfigFile::getPowerMeterModbusIp() const {
+const char* ConfigFile::GetPowerMeterModbusIp() const {
     return m_powerMeterModbusIp.c_str();
 }
 
-short ConfigFile::getPowerMeterModbusPort() const {
+short ConfigFile::GetPowerMeterModbusPort() const {
     return m_powerMeterModbusPort;
 }
 
-int ConfigFile::getPowerMeterModbusPollingPeriod() const {
+int ConfigFile::GetPowerMeterModbusPollingPeriod() const {
     return m_powerMeterModbusPollingPeriod;
 }

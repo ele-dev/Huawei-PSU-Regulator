@@ -12,9 +12,9 @@
 #include "Logger.hpp"
 
 // function prototypes
-bool scheduledClose();
-float round(float var);
-std::string float2String(float var, int decimalCnt);
+bool ScheduledClose();
+float Round(float value);
+std::string Float2String(float value, int decimalDigits);
 
 enum class PowerMeterType {
     TASMOTA,

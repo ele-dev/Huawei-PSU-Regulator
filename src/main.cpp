@@ -31,27 +31,27 @@ int main(int argc, char **argv)
     sigaction(SIGINT, &sigIntHandler, NULL);
 
     // read config variables from config file
-    bool status = cfg.loadConfig();
+    bool status = cfg.LoadConfig();
     if(!status) {
         // std::cerr << "[Config] Failed to open config.txt file!" << std::endl;
-        logger.logMessage(LogLevel::WARNING, "[Config] Failed to open config.txt file");
-        logger.logMessage(LogLevel::INFO, "[Config] --> using default settings");
+        logger.LogMessage(LogChannel::WARNING, "[Config] Failed to open config.txt file");
+        logger.LogMessage(LogChannel::INFO, "[Config] --> using default settings");
     }
 
     // print out the config variable overview
-    cfg.printConfig();
+    cfg.PrintConfig();
 
     // create opendtu instance
     OpenDtuInterface dtu;
 
     // attempt to start the PSU controller 
-    status = psu.setup(cfg.getCanInterfaceName());
+    status = psu.Setup(cfg.GetCanInterfaceName());
     if(!status) {
         terminateSignalHandler(EXIT_FAILURE);
     }
 
     // attempt to start udp receiver to listen for power change messages
-    status = powermeter.setup(cfg.getPowerMeterModbusIp(), cfg.getPowerMeterModbusPort());
+    status = powermeter.Setup(cfg.GetPowerMeterModbusIp(), cfg.GetPowerMeterModbusPort());
     if(!status) {
         terminateSignalHandler(EXIT_FAILURE);
     }
@@ -60,21 +60,21 @@ int main(int argc, char **argv)
     PVPowerPlantFSM fsm(&dtu, &psu, &powermeter);
 
     // main application loop in the main thread
-    while (!scheduledClose())
+    while (!ScheduledClose())
     {
         GridLoadState latestGridLoadState;
 
         // check for new grid load state on the queue
-        if(!cmdQueue.tryPop(latestGridLoadState)) {
+        if(!cmdQueue.TryPop(latestGridLoadState)) {
             sleep_for(milliseconds(100));       // avoid buisy waiting with small idle
             continue;
         }
 
         // required measurements from DTU
-        dtu.fetchCurrentState();
+        dtu.FetchCurrentState();
 
         // update the fsm
-        fsm.update(latestGridLoadState, dtu.getBatteryToGridPower(), dtu.getBatteryVoltage());
+        fsm.Update(latestGridLoadState, dtu.GetBatteryToGridPower(), dtu.GetBatteryVoltage());
     }
 
     // close up
@@ -85,8 +85,8 @@ int main(int argc, char **argv)
 
 void terminateSignalHandler(int code) {
     // shutdown sockets, threads and queue
-    powermeter.closeup();
-    psu.shutdown();
-    cmdQueue.clear();
+    powermeter.Closeup();
+    psu.Shutdown();
+    cmdQueue.Clear();
     exit(code);
 }
